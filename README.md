@@ -57,7 +57,8 @@ tower's own page, so its fixes and features arrive with each sync.
 
 The sidebar's foot shows it: **Lobby 0.2.1** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
-it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`.
+it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
+[CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).
 
 ## Uninstall
 
