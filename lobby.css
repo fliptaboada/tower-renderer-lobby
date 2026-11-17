@@ -175,7 +175,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .host-state.quiet .lamp { width: 7px; height: 7px; }
 
 /* The glance: what waits on you first and loudest, then the other statuses at a whisper, then the limits. */
-.glance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2xs) var(--sp-xs); padding: 0 var(--sp-l) var(--sp-m) var(--sp-xl); }
+.glance { display: flex; flex-wrap: nowrap; overflow: hidden; align-items: center; gap: var(--sp-2xs) var(--sp-xs); padding: 0 var(--sp-l) var(--sp-m) var(--sp-xl); }
 .glance :is(.tally, .limits-bar) { display: contents; }
 .glance .chip { padding: 1px var(--sp-s); font-size: var(--fs-xs); font-weight: 500; background: transparent; color: var(--muted); }
 .glance .chip b { font-weight: 700; color: var(--ink); }
@@ -185,6 +185,13 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .tally .chip.waits.some .lamp { background: var(--on); }
 .tally.clear::before { content: 'All quiet'; padding: 1px var(--sp-s); color: var(--faint); font-size: var(--fs-xs); }
 .limits-bar .chip { margin-left: auto; color: var(--faint); }
+/* One line, always (lobby.js): short of room, the words go one chip at a time, the waits' last, leaving lamps and
+   numbers. The plain chips draw no background, so they need little padding of their own. */
+.glance .chip { flex: none; white-space: nowrap; padding-inline: var(--sp-2xs); }
+.glance .tally .chip.terse .chip-word { display: none; }
+.glance.tight { column-gap: 1px; }
+.glance.tight .chip { padding-inline: 2px; }
+.glance.tight .tally .chip.waits.some { padding-inline: var(--sp-s); }
 
 /* Floors and Stats as a segmented control, the board's own commands after it. */
 .side-views { align-items: center; gap: 0; margin: 0 var(--sp-l) var(--sp-s) var(--sp-xl); padding: 0; border-bottom: 0; }
@@ -469,9 +476,10 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 .inbox-head { display: flex; align-items: center; gap: var(--sp-s); width: 100%; padding: var(--sp-xs) var(--sp-s) var(--sp-2xs); border: 0; border-radius: var(--radius-s);
   background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .inbox-head:hover { background: color-mix(in oklab, var(--ink) 5%, transparent); }
-.inbox-fold { flex: none; width: .7em; margin-right: calc(-1 * var(--sp-2xs)); color: var(--faint); font-size: var(--fs-xs); line-height: 1; }
-.inbox-fold::before { content: '›'; display: inline-block; rotate: 90deg; transition: rotate .12s ease-out; }
-.inbox.folded .inbox-fold::before { rotate: 0deg; }
+.inbox-fold { flex: none; display: grid; place-items: center; width: 12px; height: 12px; margin-right: calc(-1 * var(--sp-2xs)); color: var(--faint);
+  rotate: 90deg; transition: rotate .12s ease-out; }
+.inbox-fold svg { display: block; width: 12px; height: 12px; }
+.inbox.folded .inbox-fold { rotate: 0deg; }
 .inbox.folded .inbox-rows { display: none; }
 .inbox-rows { max-height: min(13.5rem, 32vh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 /* More rows below the fold: the last visible one fades out, saying the list goes on. */

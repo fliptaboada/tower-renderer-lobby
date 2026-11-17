@@ -46,13 +46,47 @@ import { esc, modelName } from '/lib/words.js'
 }
 
 // The tally draws every status with its count, zeros included; a count at zero is marked `zero` so the glance row
-// shows only what is there. The page redraws the tally on each board, so the marks follow its mutations.
+// shows only what is there. The waits' pill says "waiting" rather than the page's "waiting on you". The page redraws
+// the tally on each board, so the marks and the words follow its mutations, written only when they differ so the
+// observer settles.
+//
+// The glance row (the counts and the limits) keeps to one line: each chip's word is wrapped in a span, and when the
+// row runs out of room the words go one at a time, the quietest status's first and the waits' own last, leaving each
+// lamp and number (a chip's tip still names it). It is measured again whenever the counts, the limits or the sidebar's width change.
 const tally = /** @type {HTMLElement} */ (document.getElementById('tally'))
+const glance = /** @type {HTMLElement} */ (tally.closest('.glance'))
 const mark = () => {
-  for (const chip of tally.querySelectorAll('.chip')) chip.classList.toggle('zero', chip.querySelector('b')?.textContent?.trim() === '0')
+  for (const chip of tally.querySelectorAll('.chip')) {
+    const word = [...chip.childNodes].find((n) => n.nodeType === 3 && n.textContent?.trim())
+    if (word) {
+      const span = Object.assign(document.createElement('span'), { className: 'chip-word', textContent: chip.matches('.waits') ? 'waiting' : word.textContent?.trim() })
+      word.replaceWith(' ', span)
+    }
+    const kept = chip.querySelector(':scope > .chip-word')
+    if (kept && chip.matches('.waits') && kept.textContent !== 'waiting') kept.textContent = 'waiting'
+    chip.classList.toggle('zero', chip.querySelector('b')?.textContent?.trim() === '0')
+  }
   tally.classList.toggle('clear', !tally.querySelector('.chip:not(.zero)'))
+  fit()
+}
+/** Whose word goes first when the row is short of room: the quietest statuses, the waits' own last. */
+const TERSE_ORDER = ['quiet', 'working', 'ready', 'broken', 'needs', 'offered', 'waits']
+const fit = () => {
+  const over = () => glance.scrollWidth > glance.clientWidth + 1
+  const chips = /** @type {HTMLElement[]} */ ([...tally.querySelectorAll('.chip')])
+  for (const chip of chips) chip.classList.remove('terse')
+  glance.classList.remove('tight')
+  for (const kind of TERSE_ORDER) {
+    if (!over()) return
+    // The waits' pill carries its loudest wait's status too (`waits ready`): a status's turn is its own chip's.
+    chips.find((c) => c.classList.contains(kind) && (kind === 'waits' || !c.classList.contains('waits')) && !c.classList.contains('zero'))?.classList.add('terse')
+  }
+  // Every word gone and still short: the chips close up.
+  if (over()) glance.classList.add('tight')
 }
 new MutationObserver(mark).observe(tally, { childList: true, subtree: true, characterData: true })
+new MutationObserver(fit).observe(/** @type {HTMLElement} */ (document.getElementById('limits-bar')), { childList: true, subtree: true, characterData: true })
+new ResizeObserver(fit).observe(glance)
 mark()
 
 // A worker's header line, drawn from the board in the core's line's place (lobby.css hides that one, which the page
@@ -190,6 +224,9 @@ const floorEl = (floor) => /** @type {HTMLElement | null} */ (floors.querySelect
 // Off), kept in `tower.store` under INBOX_KEY; until they choose, the config's `renderers.lobby.settings.inbox` says
 // (one of the same words), else Open. Off hands the waits back to the glance's own "waiting on you" pill.
 const INBOX_KEY = 'lobby.inbox'
+/** The head's chevron, pointing right (folded); lobby.css turns it down while open. Drawn, not a glyph: a glyph sits
+ * off its box's centre, so it would turn off-centre. */
+const FOLD = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>'
 const INBOX_MODES = /** @type {const} */ (['open', 'folded', 'off'])
 /** @typedef {(typeof INBOX_MODES)[number]} InboxMode */
 const isMode = (/** @type {unknown} */ m) => INBOX_MODES.includes(/** @type {InboxMode} */ (m))
@@ -257,7 +294,9 @@ const drawInbox = () => {
   head.type = 'button'
   head.setAttribute('aria-expanded', String(mode === 'open'))
   head.dataset.tip = mode === 'open' ? 'fold the inbox to its count' : 'unfold the inbox'
-  head.append(el('span', 'inbox-fold'), el('span', 'inbox-title', WAITING_NAME[0].toUpperCase() + WAITING_NAME.slice(1)), el('span', 'inbox-n', String(waits.length)))
+  const fold = el('span', 'inbox-fold')
+  fold.innerHTML = FOLD
+  head.append(fold, el('span', 'inbox-title', WAITING_NAME[0].toUpperCase() + WAITING_NAME.slice(1)), el('span', 'inbox-n', String(waits.length)))
   head.addEventListener('click', () => setInboxMode(inboxMode() === 'open' ? 'folded' : 'open'))
   const rows = waits.map((w) => {
     const { card, floor } = /** @type {{ card: import('/lib/board.js').Card, floor: import('/lib/board.js').Floor }} */ (cards.get(w.id))
