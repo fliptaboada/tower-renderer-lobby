@@ -6,6 +6,10 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+### Fixed
+- A card that grew for its subagents shrinks back quickly once they end: an ended subagent dims and stays a
+  moment, then its row folds away in under half a second instead of crawling shut over two.
+
 ## [0.2.1] - 2026-11-17
 
 ### Changed
