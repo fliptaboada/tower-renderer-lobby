@@ -1,6 +1,6 @@
 # Lobby
 
-A calm, macOS-style page for [the tower](https://github.com/fliptaboada/the-tower). Same board, same workers, same
+A calm, macOS-style page for [the tower](https://github.com/RegiByte/the-tower). Same board, same workers, same
 extensions: only the page you look at changes. Inspired by Arc's window, Things' rows and Raycast's menus.
 
 [![Lobby, a worker's changes](docs/light.png)](docs/lobby-demo.mp4)
