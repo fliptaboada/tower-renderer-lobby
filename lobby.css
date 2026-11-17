@@ -313,6 +313,16 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   border-left: 1px solid var(--tree); pointer-events: none; }
 .floors .crew > .crew:last-child::before { display: none; }
 .crew-grip { left: 2px; top: 3px; }
+/* A subagent that ended: the page fades it over --fade (8s) and collapses its row through the last quarter, linearly,
+   so the card crawled shut over two seconds. Here it dims and stays put, then folds away in the last 400ms, eased. The
+   length is the page's: it drops the row at --fade, and a redraw resumes the animation by a negative delay. */
+.sub.ended { animation-name: lobby-satellite-leaves; }
+@keyframes lobby-satellite-leaves {
+  0% { opacity: 1; max-height: 2em; }
+  20% { opacity: .45; max-height: 2em; }
+  95% { opacity: .35; max-height: 2em; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
+  100% { opacity: 0; max-height: 0; } }
+@media (prefers-reduced-motion: reduce) { .sub.ended { animation-name: satellite-leaves; } }
 .draft:hover, .past:hover, .dir:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
 .draft.sel, .past.sel { background: var(--accent-wash); box-shadow: none; }
 
