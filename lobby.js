@@ -1,5 +1,7 @@
-// Lobby's layer over the page: view-only touches lobby.css can't make alone. Nothing stored, no verb called.
+// Lobby's layer over the page: view-only touches lobby.css can't make alone. No verb called; the one thing it keeps
+// is the viewer's choice for the inbox (Open, Folded or Off), in `tower.store`.
 import { copyText, ICON, withIcons } from '/lib/view.js'
+import { choice, section } from '/lib/settings.js'
 import { addedTidyOf, branchLine, gistLine, lampOf, loudest, pairLineOf, statusName, tidyLine, tidyRows, WAITING_NAME } from '/lib/cards.js'
 import { locationOf } from '/lib/layout.js'
 import { DISMISSED_KEY } from '/lib/viewer.js'
@@ -182,23 +184,61 @@ const floorEl = (floor) => /** @type {HTMLElement | null} */ (floors.querySelect
 // Waiting covers more than a question: a worker that finished its turn waits on you too, so the inbox is named as
 // the page names it, "Waiting on you", its count in the colour of the loudest wait and each row's state beside it.
 // A row opens the worker; its × dismisses the wait for this viewer, as the page's own dismiss does.
+//
+// However many wait, the inbox keeps to a few rows' height and scrolls the rest, so the floors keep their room. Its
+// head folds it to the count alone. Whether it shows at all is the viewer's, in the settings popover (Open, Folded or
+// Off), kept in `tower.store` under INBOX_KEY; until they choose, the config's `renderers.lobby.settings.inbox` says
+// (one of the same words), else Open. Off hands the waits back to the glance's own "waiting on you" pill.
+const INBOX_KEY = 'lobby.inbox'
+const INBOX_MODES = /** @type {const} */ (['open', 'folded', 'off'])
+/** @typedef {(typeof INBOX_MODES)[number]} InboxMode */
+const isMode = (/** @type {unknown} */ m) => INBOX_MODES.includes(/** @type {InboxMode} */ (m))
+/** What the config sets, until the viewer chooses. @type {InboxMode} */
+let inboxDefault = 'open'
+/** The viewer's choice, once made. @type {InboxMode | undefined} */
+let inboxChosen
+const inboxMode = () => inboxChosen ?? inboxDefault
+const readInboxMode = async () => {
+  const [renderer, kept] = await Promise.all([window.tower.renderer().catch(() => null), window.tower.store.get(INBOX_KEY)])
+  if (isMode(renderer?.settings?.inbox)) inboxDefault = renderer.settings.inbox
+  inboxChosen = isMode(kept) ? kept : undefined
+  drawn = ''
+  drawInbox()
+  drawInboxSetting()
+}
+const setInboxMode = (/** @type {InboxMode} */ mode) => {
+  inboxChosen = mode
+  window.tower.store.set(INBOX_KEY, mode)
+  drawn = ''
+  drawInbox()
+  drawInboxSetting()
+}
+window.tower.store.on((key) => key === INBOX_KEY && void readInboxMode())
+
 const inbox = el('section', 'inbox')
 inbox.setAttribute('aria-label', 'waiting on you')
 side.insertBefore(inbox, side.querySelector('.floors'))
+/** The rows' own scroller, kept across draws so a redraw leaves where the viewer scrolled to. */
+const inboxRows = el('div', 'inbox-rows')
+const markMore = () => inboxRows.classList.toggle('more', inboxRows.scrollTop + inboxRows.clientHeight < inboxRows.scrollHeight - 2)
+inboxRows.addEventListener('scroll', markMore, { passive: true })
 /** What the inbox last drew, all but the ages: a board that changes none of it leaves the rows, their tips and the
  * pointer's place alone, and only the ages are written. */
 let drawn = ''
+/** The wait whose worker was open at the last draw. @type {string | undefined} */
+let inboxSel
 const drawInbox = () => {
   if (!board) return
+  const mode = inboxMode()
   const cards = new Map(board.floors.flatMap((f) => f.cards.map((c) => [c.id, { card: c, floor: f }])))
-  const waits = board.waiting.filter((w) => !dismissed.has(w.key) && cards.has(w.id)).sort((a, b) => a.since - b.since)
+  const waits = mode === 'off' ? [] : board.waiting.filter((w) => !dismissed.has(w.key) && cards.has(w.id)).sort((a, b) => a.since - b.since)
   const isSel = (/** @type {string} */ id) => location.hash.slice(1).split('/')[0] === id || location.hash.includes(encodeURIComponent(`card:${id}`))
-  const shape = JSON.stringify(waits.map((w) => {
+  const shape = JSON.stringify([mode, waits.map((w) => {
     const { card, floor } = /** @type {{ card: import('/lib/board.js').Card, floor: import('/lib/board.js').Floor }} */ (cards.get(w.id))
     return [w.key, lampOf(card), card.callsign, floor.name, floorColour(floor.id), gistLine(card) || statusName(card), statusName(card), isSel(card.id)]
-  }))
+  })])
   if (shape === drawn) {
-    inbox.querySelectorAll('.inbox-row').forEach((row, i) => {
+    inboxRows.querySelectorAll('.inbox-row').forEach((row, i) => {
       const age = row.querySelector('.inbox-ago')
       const now = ago(waits[i].since)
       if (age && age.textContent !== now) age.textContent = now
@@ -207,13 +247,18 @@ const drawInbox = () => {
   }
   drawn = shape
   inbox.hidden = waits.length === 0
+  inbox.classList.toggle('folded', mode === 'folded')
   side.classList.toggle('has-inbox', waits.length > 0)
   const tone = loudest(waits.map((w) => /** @type {{ card: import('/lib/board.js').Card }} */ (cards.get(w.id)).card)) ?? 'quiet'
   // The folded sidebar's count of waits (the rail's) takes the same colour as the inbox's (lobby.css).
   side.dataset.waitTone = tone
-  if (!waits.length) return inbox.replaceChildren()
-  const head = el('div', `inbox-head ${tone}`)
-  head.append(el('span', 'inbox-title', WAITING_NAME[0].toUpperCase() + WAITING_NAME.slice(1)), el('span', 'inbox-n', String(waits.length)))
+  if (!waits.length) return (inboxRows.replaceChildren(), inbox.replaceChildren())
+  const head = el('button', `inbox-head ${tone}`)
+  head.type = 'button'
+  head.setAttribute('aria-expanded', String(mode === 'open'))
+  head.dataset.tip = mode === 'open' ? 'fold the inbox to its count' : 'unfold the inbox'
+  head.append(el('span', 'inbox-fold'), el('span', 'inbox-title', WAITING_NAME[0].toUpperCase() + WAITING_NAME.slice(1)), el('span', 'inbox-n', String(waits.length)))
+  head.addEventListener('click', () => setInboxMode(inboxMode() === 'open' ? 'folded' : 'open'))
   const rows = waits.map((w) => {
     const { card, floor } = /** @type {{ card: import('/lib/board.js').Card, floor: import('/lib/board.js').Floor }} */ (cards.get(w.id))
     const row = el('div', `inbox-row ${lampOf(card)}`)
@@ -236,8 +281,44 @@ const drawInbox = () => {
     row.append(go, dismiss)
     return row
   })
-  inbox.replaceChildren(head, ...rows)
+  inboxRows.replaceChildren(...rows)
+  inbox.replaceChildren(head, inboxRows)
+  // The open worker's row in sight when it becomes the open one, not on every redraw: a new wait leaves the scroll be.
+  const sel = waits.find((w) => isSel(w.id))?.key
+  if (mode === 'open' && sel && sel !== inboxSel) inboxRows.querySelector('.inbox-row.sel')?.scrollIntoView({ block: 'nearest' })
+  inboxSel = sel
+  markMore()
 }
+
+// The inbox's setting, a section of the page's settings popover. The page paints the popover's whole HTML on opening
+// and whenever what it shows changes, so the section is added again after each paint; the page compares its HTML
+// with what it painted last, not with the popover's, so an addition stays until its next real paint.
+const settingsPop = /** @type {HTMLElement} */ (document.getElementById('settings'))
+const INBOX_LABEL = { open: 'Open', folded: 'Folded', off: 'Off' }
+const INBOX_MEANS = {
+  open: 'who waits on you, above the floors: a few rows high, the rest a scroll away',
+  folded: 'the inbox folded to its count, unfolded from its head',
+  off: 'no inbox: the glance row\'s "waiting on you" counts the waits',
+}
+const drawInboxSetting = () => {
+  const host = settingsPop.querySelector(':scope > .settings')
+  if (!host) return
+  const html = section('Inbox', 'who waits on you, in the sidebar', `<div class="seg" role="group" aria-label="inbox">${INBOX_MODES.map((m) => choice('data-lobby-inbox', m, INBOX_LABEL[m], INBOX_MEANS[m], m === inboxMode())).join('')}</div>`)
+  const was = host.querySelector(':scope > .lobby-inbox-pref')
+  const fresh = /** @type {HTMLElement} */ (document.createRange().createContextualFragment(html).firstElementChild)
+  fresh.classList.add('lobby-inbox-pref')
+  if (was?.outerHTML === fresh.outerHTML) return
+  const focused = document.activeElement?.closest('[data-lobby-inbox]')?.getAttribute('data-lobby-inbox')
+  if (was) was.replaceWith(fresh)
+  else (host.querySelectorAll(':scope > section')[1] ?? host.lastElementChild)?.after(fresh)
+  if (focused) /** @type {HTMLElement | null} */ (fresh.querySelector(`[data-lobby-inbox="${focused}"]`))?.focus()
+}
+new MutationObserver(() => drawInboxSetting()).observe(settingsPop, { childList: true })
+settingsPop.addEventListener('click', (e) => {
+  const mode = /** @type {Element} */ (e.target).closest('[data-lobby-inbox]')?.getAttribute('data-lobby-inbox')
+  if (isMode(mode)) setInboxMode(/** @type {InboxMode} */ (mode))
+})
+void readInboxMode()
 setInterval(drawInbox, 30_000)
 addEventListener('hashchange', drawInbox)
 

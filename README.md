@@ -10,7 +10,8 @@ extensions: only the page you look at changes. Inspired by Arc's window, Things'
 ## What it changes
 
 - **Waiting on you**: one inbox at the top of the sidebar, every worker that needs you or finished, on any floor,
-  the longest wait first.
+  the longest wait first. It keeps to about four rows and scrolls the rest, and its head folds it to its count.
+  Settings (the gear) has **Inbox: Open, Folded or Off**; Off gives the count back to the glance row's pill.
 - **Quiet floors**: floors read as signs, workers as soft cards, and a crew as a tree with clear lines.
 - **One ⋯ menu per floor** (or a right-click on its name): kept items, archive, worktrees, Tidy, messages, the shelf
   and repos in one place. What is open is ticked; picking it again closes it.
@@ -37,6 +38,9 @@ cd tower-renderer-lobby
 ```json
 "renderers": { "lobby": { "root": "/path/to/tower-renderer-lobby/out" } }
 ```
+
+To set the inbox for every browser until a viewer picks in Settings, give the entry `"settings": { "inbox": "folded" }`
+(or `"open"`, `"off"`).
 
 Check the config with `tower config check`, and open `http://127.0.0.1:<your tower's port>/r/lobby/`. To make it the
 page `/` opens (and Tower.app shows), add `"renderer": "lobby"` too. The tower reads the config again on its own: no
@@ -65,7 +69,7 @@ Lobby is two files over a fresh copy of the stock page, and touches nothing in t
 
 - `lobby.css` restyles the page with the design's own tokens.
 - `lobby.js` regroups the sidebar's frame before the page first draws, and adds the inbox, the floor menus and the
-  header line. It reads the board and the tower's library, and stores nothing.
+  header line. It reads the board and the tower's library, and keeps one thing: the viewer's choice for the inbox.
 - `sync.sh` makes the only edit to the copy: one line that links `lobby.css` and one that loads `lobby.js`.
 
 It builds on the page's element ids and classes, which are not a contract between tower versions. If a tower update
