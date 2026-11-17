@@ -49,6 +49,12 @@ If no tower is running, point `sync.sh` at your tower's checkout instead: `./syn
 After `tower update`, or a `git pull` here, run `./sync.sh` again and reload the page. Lobby sits on top of your
 tower's own page, so its fixes and features arrive with each sync.
 
+## Which version you run
+
+The sidebar's foot shows it: **Lobby 0.1.0** at the end of "Config and renderers". Its tip says the commit it was
+built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
+it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`.
+
 ## Uninstall
 
 Remove the `lobby` entry (and `"renderer": "lobby"`, if you set it) from your config, then delete the clone.

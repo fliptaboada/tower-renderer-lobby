@@ -25,6 +25,22 @@ import { esc, modelName } from '/lib/words.js'
   const more = make('<details class="side-more"><summary>Config and renderers</summary></details>')
   byId('side-foot').before(more)
   more.append(byId('side-foot'), byId('renderers'))
+
+  // Lobby's version, at the end of that fold's summary (where the page's own version, which lobby.css hides from the
+  // brand, goes too): sync.sh stamps the build into a meta tag, VERSION's number with the commit it was built from.
+  // Pressing it copies one line that says what runs, for a bug report.
+  const meta = /** @type {HTMLMetaElement} */ (document.querySelector('meta[name="lobby-version"]'))
+  const { commit, built } = meta.dataset
+  const said = `Lobby ${meta.content} (${commit}, built ${built}) on the tower ${window.tower.served.version ?? 'of unknown version'}`
+  const version = Object.assign(document.createElement('button'), { type: 'button', className: 'lobby-version', textContent: `Lobby ${meta.content}` })
+  version.dataset.tip = `${said}. Press to copy it`
+  version.addEventListener('click', (e) => {
+    e.preventDefault()
+    copyText(said).then(() => (version.dataset.tip = 'copied'), (/** @type {Error} */ err) => (version.dataset.tip = err.message))
+    setTimeout(() => (version.dataset.tip = `${said}. Press to copy it`), 1400)
+  })
+  const summary = /** @type {HTMLElement} */ (more.querySelector('summary'))
+  summary.replaceChildren(Object.assign(document.createElement('span'), { textContent: 'Config and renderers' }), version)
 }
 
 // The tally draws every status with its count, zeros included; a count at zero is marked `zero` so the glance row

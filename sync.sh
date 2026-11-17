@@ -38,7 +38,16 @@ cp "$here/lobby.css" "$here/lobby.js" "$here/out/"
 # it has loaded across reloads while its URL is the same.
 css=$(shasum "$here/lobby.css" | cut -c1-10)
 js=$(shasum "$here/lobby.js" | cut -c1-10)
-perl -0pi -e "s#</head>#<link rel=\"stylesheet\" href=\"lobby.css?v=$css\">\n</head>#; s#(<script type=\"module\" src=\"page.js\"></script>)#<script type=\"module\" src=\"lobby.js?v=$js\"></script>\n\$1#" "$here/out/index.html"
+# What runs, for lobby.js to show: VERSION's number, the commit it was built from (`+` when the clone has changes of
+# its own), and the day of the build.
+version=$(tr -d '[:space:]' < "$here/VERSION")
+if commit=$(git -C "$here" rev-parse --short HEAD 2>/dev/null); then
+  git -C "$here" diff --quiet HEAD -- . || commit=$commit+
+else
+  commit='no git'
+fi
+built=$(date +%Y-%m-%d)
+perl -0pi -e "s#</head>#<meta name=\"lobby-version\" content=\"$version\" data-commit=\"$commit\" data-built=\"$built\">\n<link rel=\"stylesheet\" href=\"lobby.css?v=$css\">\n</head>#; s#(<script type=\"module\" src=\"page.js\"></script>)#<script type=\"module\" src=\"lobby.js?v=$js\"></script>\n\$1#" "$here/out/index.html"
 grep -q "lobby.css?v=$css" "$here/out/index.html" && grep -q "lobby.js?v=$js" "$here/out/index.html" || {
   echo "sync: $page/index.html no longer has </head> or page.js's script tag where Lobby expects them: Lobby needs an update" >&2; exit 1; }
 echo "lobby: built from $page into $here/out"

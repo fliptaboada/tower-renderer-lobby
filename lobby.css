@@ -313,6 +313,12 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .side-more { margin-top: auto; border-top: 1px solid var(--line); }
 .side-more > summary { padding: var(--sp-s) var(--sp-xl); color: var(--faint); font-size: var(--fs-xs); cursor: pointer; list-style: none; }
 .side-more > summary::-webkit-details-marker { display: none; }
+.side-more > summary { display: flex; align-items: baseline; }
+.side-more > summary > span { flex: 1; }
+/* Lobby's version (lobby.js): quiet at the summary's end, pressed to copy what runs. */
+.side-more .lobby-version { padding: 0 var(--sp-2xs); border: 0; border-radius: 4px; background: none; color: var(--faint);
+  font: 500 var(--fs-xs)/1.4 var(--mono); cursor: pointer; }
+.side-more .lobby-version:hover { color: var(--ink); background: color-mix(in oklab, var(--ink) 7%, transparent); }
 .side-more > summary::before { content: '›'; display: inline-block; width: 1em; transition: rotate .12s ease-out; }
 .side-more[open] > summary::before { rotate: 90deg; }
 .side-more > summary:hover { color: var(--ink); }
