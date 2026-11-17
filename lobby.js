@@ -333,7 +333,8 @@ const fill = (floor) => {
       const rows = tidyRows(f, Date.now(), addedTidyOf(board, f)).length
       return rows > 0 && entry({ what: 'Tidy', glyph: 'tidy', n: rows, on: sectionOn('tidy'), tip: tidyLine(f.tidy, addedTidyOf(board, f)), run: () => openSection(f.id, 'tidy') })
     })(),
-    f.messages.all > 0 && entry({ what: 'Messages', glyph: 'answer', n: f.messages.all, data: { comms: f.id } }),
+    // A floor's messages come from the Comms work, which not every tower's board carries: without them, no item.
+    (/** @type {any} */ (f).messages?.all ?? 0) > 0 && entry({ what: 'Messages', glyph: 'answer', n: /** @type {any} */ (f).messages.all, data: { comms: f.id } }),
     f.cards.some((c) => c.stranded) && entry({ what: 'Resume stranded workers', glyph: 'resume', n: f.cards.filter((c) => c.stranded).length, data: { resumeAll: f.id } }),
   ].filter((e) => e instanceof HTMLElement)
   const shelf = (f.shelf ?? []).map((s, n) => {
