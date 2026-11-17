@@ -13,7 +13,7 @@ extensions: only the page you look at changes. Inspired by Arc's window, Things'
   the longest wait first. It keeps to about four rows and scrolls the rest, and its head folds it to its count.
   Settings (the gear) has **Inbox: Open, Folded or Off**; Off gives the count back to the glance row's pill.
 - **Quiet floors**: floors read as signs, workers as soft cards, and a crew as a tree with clear lines.
-- **One ⋯ menu per floor** (or a right-click on its name): kept items, archive, worktrees, Tidy, messages, the shelf
+- **One ⋯ menu per floor** (or a right-click on its name): kept items, archive, worktrees, Tidy, the shelf
   and repos in one place. What is open is ticked; picking it again closes it.
 - **A cleaner worker header**: floor · model · effort · branch on one line, with a button that copies the branch.
 - **Stats in the main pane**, opened from the chart icon in the header, instead of squeezed into the sidebar.
@@ -55,7 +55,7 @@ tower's own page, so its fixes and features arrive with each sync.
 
 ## Which version you run
 
-The sidebar's foot shows it: **Lobby 0.2.1** at the end of "Config and renderers". Its tip says the commit it was
+The sidebar's foot shows it: **Lobby 0.2.2** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
 it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
 [CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).

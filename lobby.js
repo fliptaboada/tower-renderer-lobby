@@ -182,7 +182,7 @@ new MutationObserver((changes) => changes.some((m) => !inTerminal(m)) && queue()
 
 // What the sidebar draws from the board itself, beside the page's floors: the inbox of who waits on you, and each
 // floor's menu. Both act through the page's own controls by their data attributes (data-worker, data-open-view,
-// data-dismiss, data-spawn, data-shell-dir, data-open, data-comms, data-resume-all), which the page handles wherever
+// data-dismiss, data-spawn, data-shell-dir, data-open, data-resume-all), which the page handles wherever
 // they are clicked, so nothing here calls a verb or keeps state of its own.
 const side = /** @type {HTMLElement} */ (document.querySelector('.side'))
 const floors = /** @type {HTMLElement} */ (document.getElementById('floors'))
@@ -453,8 +453,6 @@ const fill = (floor) => {
       const rows = tidyRows(f, Date.now(), addedTidyOf(board, f)).length
       return rows > 0 && entry({ what: 'Tidy', glyph: 'tidy', n: rows, on: sectionOn('tidy'), tip: tidyLine(f.tidy, addedTidyOf(board, f)), run: () => openSection(f.id, 'tidy') })
     })(),
-    // A floor's messages come from the Comms work, which not every tower's board carries: without them, no item.
-    (/** @type {any} */ (f).messages?.all ?? 0) > 0 && entry({ what: 'Messages', glyph: 'answer', n: /** @type {any} */ (f).messages.all, data: { comms: f.id } }),
     f.cards.some((c) => c.stranded) && entry({ what: 'Resume stranded workers', glyph: 'resume', n: f.cards.filter((c) => c.stranded).length, data: { resumeAll: f.id } }),
   ].filter((e) => e instanceof HTMLElement)
   const shelf = (f.shelf ?? []).map((s, n) => {
