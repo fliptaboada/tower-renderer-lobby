@@ -1,0 +1,649 @@
+/* Lobby: the tower page in a macOS-like dress. Arc's window (the sidebar is the window's tinted chrome, the main
+   pane a card inset in it), Things' calm rows and spacing, Raycast's palette. Loaded after /design.css and the
+   page's own <style>, so it wins at equal specificity.
+
+   Tokens first: every block below mirrors a block of /design.css, same selector, so each scheme and contrast keeps
+   its own values. Attention keeps its meaning (needs red, working amber, ready green, quiet grey); only the hues move
+   to the system's. --enamel stays the core's: terminals take their background from /lib/design.js, not from CSS. */
+
+:root {
+  --ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Atkinson Hyperlegible', sans-serif;
+  --display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Overpass', sans-serif;
+  --radius: 8px;
+  --radius-s: 4px;
+  --radius-l: 12px;
+  --selected: inset 0 0 0 1px var(--accent);
+
+  color-scheme: light;
+  --wall: #e6e6eb;
+  --panel: #ffffff;
+  --panel-2: #f2f2f5;
+  --sunk: #ebebef;
+  --line: #e0e0e5;
+  --line-strong: #8a8a93;
+  --ink: #1d1d1f;
+  --muted: #48484f;
+  --faint: #5f5f67;
+  --deco: #b4b4bc;
+  --accent: #0a62d0;
+  --accent-wash: #e3edfb;
+  --needs: #e0261b;
+  --offered: #0a62d0;
+  --ready: #34c759;
+  --working: #ff9f0a;
+  --quiet: #a1a1a8;
+  --broken: #9b2a22;
+  --needs-text: #c4150b;
+  --ready-text: #1d7433;
+  --working-text: #995500;
+  --broken-text: #9b2a22;
+  --on-needs: #ffffff;
+  --on-offered: #ffffff;
+  --on-ready: #1d1d1f;
+  --on-working: #1d1d1f;
+  --on-quiet: #1d1d1f;
+  --on-broken: #ffffff;
+  --shadow: 0 0 0 .5px #0000001a, 0 1px 2px #0000000f, 0 4px 12px -6px #0000001f;
+  --shadow-pop: 0 0 0 .5px #00000026, 0 24px 64px -16px #00000047;
+  --card-shadow: 0 0 0 .5px #00000014, 0 1px 3px #0000000d;
+  --card-lift: 0 0 0 .5px #0000001a, 0 2px 4px -1px #0000000f, 0 10px 24px -12px #00000040;
+  --card-hover: #ffffff;
+  --backdrop: #00000026;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-scheme='light']) {
+    color-scheme: dark;
+    --wall: #161618;
+    --panel: #222225;
+    --panel-2: #2c2c30;
+    --sunk: #1a1a1c;
+    --line: #36363b;
+    --line-strong: #7c7c84;
+    --ink: #f2f2f4;
+    --muted: #b8b8bf;
+    --faint: #9a9aa2;
+    --deco: #5c5c63;
+    --accent: #4c9bff;
+    --accent-wash: #1d3150;
+    --needs: #ff5a52;
+    --offered: #4c9bff;
+    --ready: #32d74b;
+    --working: #ffa926;
+    --quiet: #8e8e93;
+    --broken: #c4554c;
+    --needs-text: #ff7d76;
+    --ready-text: #4cd964;
+    --working-text: #ffb340;
+    --broken-text: #ff8a80;
+    --on-needs: #111113;
+    --on-offered: #111113;
+    --on-ready: #111113;
+    --on-working: #111113;
+    --on-quiet: #111113;
+    --on-broken: #ffffff;
+    --shadow: 0 0 0 .5px #ffffff12, 0 6px 16px -8px #000000b3;
+    --shadow-pop: 0 0 0 .5px #ffffff1f, 0 24px 64px -16px #000000d9;
+    --card-shadow: 0 0 0 .5px #ffffff0f, 0 1px 3px #00000066;
+    --card-lift: 0 0 0 .5px #ffffff1f, 0 2px 4px -1px #00000080, 0 12px 28px -12px #000000cc;
+    --card-hover: #29292d;
+    --backdrop: #00000073;
+  }
+}
+:root[data-scheme='dark'] {
+  color-scheme: dark;
+  --wall: #161618;
+  --panel: #222225;
+  --panel-2: #2c2c30;
+  --sunk: #1a1a1c;
+  --line: #36363b;
+  --line-strong: #7c7c84;
+  --ink: #f2f2f4;
+  --muted: #b8b8bf;
+  --faint: #9a9aa2;
+  --deco: #5c5c63;
+  --accent: #4c9bff;
+  --accent-wash: #1d3150;
+  --needs: #ff5a52;
+  --offered: #4c9bff;
+  --ready: #32d74b;
+  --working: #ffa926;
+  --quiet: #8e8e93;
+  --broken: #c4554c;
+  --needs-text: #ff7d76;
+  --ready-text: #4cd964;
+  --working-text: #ffb340;
+  --broken-text: #ff8a80;
+  --on-needs: #111113;
+  --on-offered: #111113;
+  --on-ready: #111113;
+  --on-working: #111113;
+  --on-quiet: #111113;
+  --on-broken: #ffffff;
+  --shadow: 0 0 0 .5px #ffffff12, 0 6px 16px -8px #000000b3;
+  --shadow-pop: 0 0 0 .5px #ffffff1f, 0 24px 64px -16px #000000d9;
+  --card-shadow: 0 0 0 .5px #ffffff0f, 0 1px 3px #00000066;
+  --card-lift: 0 0 0 .5px #ffffff1f, 0 2px 4px -1px #00000080, 0 12px 28px -12px #000000cc;
+  --card-hover: #29292d;
+  --backdrop: #00000073;
+}
+
+/* More contrast: darker secondary text and visible lines, as /design.css does for its own palettes. */
+:root[data-contrast='more'] { --muted: #35353b; --faint: #45454c; --deco: #5f5f67; --line: #8a8a93; }
+@media (prefers-contrast: more) { :root { --muted: #35353b; --faint: #45454c; --deco: #5f5f67; --line: #8a8a93; } }
+@media (prefers-color-scheme: dark) { :root[data-contrast='more']:not([data-scheme='light']) { --muted: #d6d6dc; --faint: #c0c0c7; --deco: #9a9aa2; --line: #7c7c84; } }
+:root[data-contrast='more'][data-scheme='dark'] { --muted: #d6d6dc; --faint: #c0c0c7; --deco: #9a9aa2; --line: #7c7c84; }
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) { :root:not([data-scheme='light']) { --muted: #d6d6dc; --faint: #c0c0c7; --deco: #9a9aa2; --line: #7c7c84; } }
+@media (prefers-contrast: more) { :root[data-scheme='dark'] { --muted: #d6d6dc; --faint: #c0c0c7; --deco: #9a9aa2; --line: #7c7c84; } }
+
+/* The window: the sidebar is chrome, the main pane a card set into it. */
+body { background: var(--wall); letter-spacing: -.003em; }
+.side { background: transparent; border-right: 0; }
+.main { margin: var(--sp-m) var(--sp-m) var(--sp-m) 0; padding: var(--sp-l) var(--sp-l) 0; background: var(--panel); border-radius: var(--radius-l);
+  box-shadow: var(--card-shadow); overflow: hidden; }
+.dock { margin: 0 calc(-1 * var(--sp-l)); background: transparent; }
+.shell-pane { margin: 0 var(--sp-l) var(--sp-l); border-radius: var(--radius); box-shadow: none; }
+@media (max-width: 900px) { .main { margin-left: var(--sp-m); } body.drawer .side { background: var(--wall); } }
+
+/* Type: the system face, weights a step lighter, no shouting capitals. */
+.display { font-weight: 600; }
+.brand h1 { font: 700 var(--fs-xl)/1 var(--display); text-transform: none; letter-spacing: -.01em; }
+.eyebrow { font: 600 var(--fs-xs)/1 var(--ui); letter-spacing: .02em; text-transform: none; color: var(--faint); }
+dialog h2 { font: 700 var(--fs-xl)/1.2 var(--display); text-transform: none; letter-spacing: -.01em; }
+.sign .name { font: 600 var(--fs-m)/1.35 var(--display); text-transform: none; letter-spacing: 0; }
+.sess .call, .away .call, .past .call { font-family: var(--ui); font-weight: 600; letter-spacing: 0; }
+button { font-weight: 500; }
+kbd { font-weight: 500; background: var(--panel-2); color: var(--muted); box-shadow: inset 0 0 0 .5px var(--line-strong); }
+
+/* Controls: quiet until touched, the accent marks what is chosen. */
+button { background: var(--panel); border-color: var(--line); }
+button:hover { border-color: var(--line-strong); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-offered); }
+.icon-btn:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); border-color: transparent; }
+:is(.pane-tab.on, .tab.open) { border-color: var(--accent); }
+
+/* ── The sidebar ─────────────────────────────────────────────────────────────────────────────────────────────────
+   Three tiers, read top to bottom: what is going on (one row of counts, only those above zero), where you are going
+   (floors as quiet section heads, workers as flat rows), and the rest (config, renderers) folded at the foot.
+   Colour is kept for attention: a worker's lamp, a row tinted when it waits on you, the floor's own mark. */
+/* One right edge for the sidebar, 12px in: the header's icons, the limits, Floors and Stats, the floors' buttons and
+   counts, the workers' cards all end there. */
+.brand { padding: var(--sp-l) var(--sp-l) var(--sp-m) var(--sp-xl); gap: var(--sp-2xs); }
+.brand .version { display: none; }
+.host-state { font-weight: 500; }
+.host-state.quiet { gap: 0; font-size: 0; }
+.host-state.quiet .lamp { width: 7px; height: 7px; }
+
+/* The glance: what waits on you first and loudest, then the other statuses at a whisper, then the limits. */
+.glance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2xs) var(--sp-xs); padding: 0 var(--sp-l) var(--sp-m) var(--sp-xl); }
+.glance :is(.tally, .limits-bar) { display: contents; }
+.glance .chip { padding: 1px var(--sp-s); font-size: var(--fs-xs); font-weight: 500; background: transparent; color: var(--muted); }
+.glance .chip b { font-weight: 700; color: var(--ink); }
+.tally .chip.zero { display: none; }
+.tally .chip.waits.some { background: var(--c); color: var(--on); box-shadow: none; padding-inline: var(--sp-m); }
+.tally .chip.waits.some b { color: inherit; }
+.tally .chip.waits.some .lamp { background: var(--on); }
+.tally.clear::before { content: 'All quiet'; padding: 1px var(--sp-s); color: var(--faint); font-size: var(--fs-xs); }
+.limits-bar .chip { margin-left: auto; color: var(--faint); }
+
+/* Floors and Stats as a segmented control, the board's own commands after it. */
+.side-views { align-items: center; gap: 0; margin: 0 var(--sp-l) var(--sp-s) var(--sp-xl); padding: 0; border-bottom: 0; }
+.side-views > button { flex: 1; min-height: 22px; margin: 0; border: 0; border-radius: 0; background: color-mix(in oklab, var(--ink) 6%, transparent);
+  color: var(--muted); font: 500 var(--fs-xs)/1 var(--ui); letter-spacing: 0; text-transform: none; }
+.side-views > button:first-child { border-radius: var(--radius-s) 0 0 var(--radius-s); }
+.side-views > button:nth-child(2) { border-radius: 0 var(--radius-s) var(--radius-s) 0; }
+.side-views > button.on { background: var(--panel); color: var(--ink); box-shadow: var(--card-shadow); border-radius: var(--radius-s); position: relative; }
+.side-views .board-sign { flex: none; margin-left: var(--sp-xs); }
+
+/* Floors: section heads, their colour a small mark; + and the floor's commands show on hover. */
+.floors { padding: var(--sp-xs) var(--sp-l) var(--sp-l); gap: var(--sp-m); }
+.floor.folded + .floor.folded { margin-top: calc(var(--sp-2xs) - var(--sp-m)); }
+.floors .sign { padding: var(--sp-2xs) 0 var(--sp-2xs) var(--sp-s); gap: var(--sp-s); background: var(--wall); border: 0; box-shadow: none; color: var(--ink); border-radius: var(--radius); }
+.floors .sign:hover { background: color-mix(in oklab, var(--ink) 5%, var(--wall)); }
+.floors .sign .num { min-width: 18px; min-height: 18px; padding: 0 3px; border-radius: 5px; font: 700 10px/1 var(--ui); }
+.floors .sign .name { font: 600 var(--fs-m)/1.35 var(--ui); letter-spacing: 0; text-transform: none; }
+.floors .sign .fold .icon { color: var(--faint); }
+.floors .sign .summary .chip { background: transparent; color: var(--muted); font-weight: 600; }
+.floors .sign .summary .chip.waits.some { background: var(--c); color: var(--on); box-shadow: none; }
+.floors .sign > button { opacity: 0; background: transparent; border-color: transparent; transition: opacity .12s ease-out; }
+.floors .sign:is(:hover, :focus-within) > button { opacity: 1; }
+.floors .sign > button:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+@media (hover: none) { .floors .sign > button { opacity: 1; } }
+/* A floor's body holds its workers and what asks of you, nothing else. The rest the floor holds (its trays, shelf
+   pages, repos and its own buttons) is in its menu: ⋯ on the floor's name, or a right-click on the name. lobby.js
+   builds the menu from those elements, hidden here, and presses the real one, so what an extension adds is in it.
+   A tray opened from the menu (drafts, threads, worktrees) shows as a well under the workers, headed by its own tray
+   button (its name, its count, an ×), which closes it as it opened it. The menu checks what is open. */
+.floor { position: relative; display: flex; flex-direction: column; }
+/* The page sticks a sign at minus its own floors' top padding; here the whole sidebar scrolls, with none, so at 0. */
+.floor > .sign { order: 0; top: 0; }
+.floor > :is(.offers, .asks) { order: 1; }
+.floor > .sessions { order: 2; }
+.floor > .trays { order: 3; display: flex; flex-direction: column; flex-wrap: nowrap; padding: 0; }
+.floor > :is(.shelf, .dirs, .adds), .floor > .trays .tray { display: none; }
+
+/* An open well's head: the tray that opened it, its × the way to close it. */
+.floor > .trays .region-row:has(> .tray-open) > .tray { display: flex; align-items: center; gap: var(--sp-s); width: 100%; min-height: 30px; margin-top: var(--sp-xs);
+  padding: 0 var(--sp-s) 0 var(--sp-m); border: 0; border-radius: var(--radius) var(--radius) 0 0; background: var(--sunk); color: var(--ink);
+  font: 600 var(--fs-s)/1 var(--ui); text-align: left; box-shadow: inset 0 -1px 0 var(--line); }
+.floor > .trays .region-row:has(> .tray-open) > .tray .icon { width: 14px; height: 14px; color: var(--muted); }
+.floor > .trays .region-row:has(> .tray-open) > .tray::after { content: ''; flex: none; width: 20px; height: 20px; margin-left: auto; border-radius: var(--radius-s);
+  background: var(--muted); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m6 6 8 8M14 6l-8 8'/%3E%3C/svg%3E") center / 20px no-repeat; }
+.floor > .trays .region-row:has(> .tray-open) > .tray:hover::after { background: var(--ink); }
+.floor > .trays .region-row:has(> .tray-open) > .tray + .tray-open { margin-top: 0; border-radius: 0 0 var(--radius) var(--radius); }
+
+/* The menu's button on the floor's name: shown on hover like the floor's others, and always while something in the
+   menu wants you, with a dot in that colour. */
+.floors .sign > .floor-more { position: relative; }
+.floors .sign > .floor-more[data-dot] { opacity: 1; }
+.floor-more[data-dot]::after { content: ''; position: absolute; top: 2px; right: 2px; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--accent));
+  box-shadow: 0 0 0 2px var(--wall); }
+.floor-more[data-dot="broken"] { --c: var(--needs); }
+.floor-more[data-dot="working"] { --c: var(--working); }
+
+/* The floor's menu: a macOS context menu, the hovered or focused item on the accent. */
+.floor-menu { position: fixed; inset: auto; margin: 0; min-width: 15rem; max-width: min(22rem, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow: auto;
+  padding: var(--sp-2xs); border: 0; border-radius: var(--radius); background: var(--panel); color: var(--ink); box-shadow: var(--shadow-pop); font: 400 var(--fs-s)/1.2 var(--ui); }
+.floor-menu .menu-label { padding: var(--sp-s) var(--sp-m) var(--sp-2xs); color: var(--faint); font-size: var(--fs-xs); font-weight: 600; }
+.floor-menu [role="separator"] { margin: var(--sp-2xs) var(--sp-s); border-top: 1px solid var(--line); }
+.floor-menu [role="menuitem"]:not(.icon-btn) { display: flex; align-items: center; gap: var(--sp-s); width: 100%; min-height: 26px; padding: 0 var(--sp-m); border: 0; border-radius: var(--radius-s);
+  background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.floor-menu [role="menuitem"] .icon { flex: none; width: 14px; height: 14px; color: var(--muted); }
+.floor-menu [role="menuitem"] .what { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.floor-menu [role="menuitem"] .n { flex: none; color: var(--faint); font-variant-numeric: tabular-nums; }
+.floor-menu [role="menuitem"] .warn { flex: none; color: var(--needs-text); font-weight: 600; }
+.floor-menu [role="menuitem"].on .what { font-weight: 600; }
+.floor-menu [role="menuitem"]:is(:hover, :focus-visible) { outline: none; background: var(--accent); color: var(--on-offered); }
+.floor-menu [role="menuitem"]:is(:hover, :focus-visible) :is(.icon, .n, .warn) { color: inherit; }
+.floor-menu .repo-acts { display: flex; align-items: center; gap: var(--sp-s); padding: 0 var(--sp-m); min-height: 26px; }
+.floor-menu .repo-acts .what { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.floor-menu .repo-acts .icon-btn { min-width: 24px; min-height: 24px; border-radius: var(--radius-s); color: var(--muted); }
+.floor-menu .repo-acts .icon-btn:is(:hover, :focus-visible) { outline: none; background: var(--accent); color: var(--on-offered); }
+
+
+/* The sunk well: a tray opened in place. */
+.floor .tray-open { margin: var(--sp-2xs) 0 var(--sp-xs); padding: var(--sp-s) var(--sp-xs); border-radius: var(--radius); background: var(--sunk);
+  box-shadow: inset 0 1px 2px #0000000f; }
+
+/* Workers: raised cards. The lamp carries attention; a card that waits on you is tinted in its colour; the selected
+   one in the accent. What a worker is doing reads under its name, indented to it. Gone home, a worker flattens. */
+.sessions, .crew-group { gap: var(--sp-2xs); }
+.sessions { padding-top: var(--sp-2xs); }
+.sess { padding: var(--sp-s) var(--sp-m); border: 1px solid transparent; border-radius: var(--radius); background: var(--panel); box-shadow: var(--card-shadow);
+  transition: box-shadow .18s ease-out, background-color .18s ease-out; }
+/* Pointed at, a card lifts by its shadow alone (wider, softer) and, in the dark, a lighter face. It doesn't move: a
+   card that moved slipped out from under a pointer resting at its edge, lost the hover, dropped back and took it
+   again. A tinted card (waiting, selected) keeps its tint. */
+.floors .sess:hover { box-shadow: var(--card-lift); }
+.floors .sess:not(.waits, .sel, .gone):hover { background: var(--card-hover); }
+.floors .sess:active { box-shadow: var(--card-shadow); transition-duration: .06s; }
+.sess.gone { background: transparent; box-shadow: none; }
+.sess.waits, .sess.waits.needs { background: color-mix(in oklab, var(--c) 12%, var(--panel)); border-color: transparent; }
+.sess.sel, .floors .sess.sel { background: var(--accent-wash); border-color: transparent; box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 45%, transparent); }
+.sess .top { gap: var(--sp-s); }
+.sess .lamp { width: 8px; height: 8px; }
+.sess .call { font-size: var(--fs-m); }
+.sess .st { font-weight: 500; color: var(--faint); }
+.sess > :not(.top, .act) { margin-left: calc(8px + var(--sp-s)); }
+.sess .line { margin-top: 1px; font-size: var(--fs-xs); color: var(--faint); }
+.sess .branch { margin-top: 1px; }
+/* A crew as a tree: from under its lead's lamp a trunk runs down, and a rounded elbow turns into each hire's card at
+   its name; the trunk stops at the last hire, so where a crew ends shows. A hire gone home hangs by a dashed elbow.
+   A nested crew draws its own trunk, its lead's trunk running on past it to the hires below. --tx is the trunk's place
+   left of a crew's content, --tg the crew's gap, --ty the height of a card's name row. A card is measured inside its 1px
+   border, a nested crew has none: its lines sit a pixel further in, so they meet the cards'. */
+.floors .crew { --tx: 11px; --tg: 4px; --ty: 16px; --tree: color-mix(in oklab, var(--line-strong) 75%, transparent);
+  gap: var(--tg); margin-left: 10px; padding-left: 16px; border-left: 0; }
+.floors .crew .crew { margin-left: 10px; padding-left: 16px; }
+.floors .crew > * { position: relative; }
+.floors .crew > :not(:last-child)::after { content: ''; position: absolute; left: calc(-1 * var(--tx)); top: var(--ty); bottom: calc(-1 * var(--tg)); border-left: 1px solid var(--tree); pointer-events: none; }
+.floors .crew > .crew:not(:last-child)::after { left: calc(-1 * var(--tx) - 9px); top: calc(-1 * var(--tg)); }
+.floors .crew > :is(.sess, .gone-home, .away)::before { content: ''; position: absolute; left: calc(-1 * var(--tx)); top: calc(-1 * var(--tg)); width: calc(var(--tx) - 2px);
+  height: calc(var(--ty) + var(--tg)); border: solid var(--tree); border-width: 0 0 1px 1px; border-bottom-left-radius: 7px; pointer-events: none; }
+.floors .crew > .gone-home::before { --ty: 12px; }
+.floors .crew > .sess.gone::before { border-style: dashed; }
+.floors .crew > .crew::before { content: ''; position: absolute; left: calc(-1 * var(--tx) - 9px); top: calc(-1 * var(--tg)); height: calc(var(--tg) + 1px);
+  border-left: 1px solid var(--tree); pointer-events: none; }
+.floors .crew > .crew:last-child::before { display: none; }
+.crew-grip { left: 2px; top: 3px; }
+.draft:hover, .past:hover, .dir:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+.draft.sel, .past.sel { background: var(--accent-wash); box-shadow: none; }
+
+/* The foot: config and renderers, folded. */
+.side-more { margin-top: auto; border-top: 1px solid var(--line); }
+.side-more > summary { padding: var(--sp-s) var(--sp-xl); color: var(--faint); font-size: var(--fs-xs); cursor: pointer; list-style: none; }
+.side-more > summary::-webkit-details-marker { display: none; }
+.side-more > summary::before { content: '›'; display: inline-block; width: 1em; transition: rotate .12s ease-out; }
+.side-more[open] > summary::before { rotate: 90deg; }
+.side-more > summary:hover { color: var(--ink); }
+.side-more .side-foot { margin-top: 0; padding-top: 0; border-top: 0; }
+
+/* Sheets and the palette: Raycast's floating panel. */
+dialog { border: 0; border-radius: var(--radius-l); box-shadow: var(--shadow-pop); }
+dialog::backdrop { backdrop-filter: blur(2px); }
+dialog.palette { margin-top: 16vh; border-radius: 14px; }
+#palette-input { font-size: var(--fs-2xl); padding: var(--sp-xl) var(--sp-xl); }
+.pal-item { padding: var(--sp-m) var(--sp-m); border-radius: var(--radius); }
+.pal-item[aria-selected="true"] { background: var(--accent-wash); box-shadow: none; }
+.pal-group { font-weight: 600; }
+.region-menu, .shell-pick, .settings-pop { border: 0; border-radius: var(--radius); box-shadow: var(--shadow-pop); }
+
+/* The shells' dock: tabs as segments under the card. */
+.tab, .tab-add { background: transparent; box-shadow: none; }
+.tab.open { background: var(--panel-2); }
+
+/* ── The main pane ──────────────────────────────────────────────────────────────────────────────────────────────
+   Views style themselves under :where([data-view]) from <style> elements added after this sheet, so these rules
+   name [data-view] to outweigh them. A view's head is the card's toolbar, not a card inside the card: no frame, a
+   hairline under it, the system face, no capitals. */
+.main [data-view] :is(.bar, .shelf-head) { padding: var(--sp-xs) var(--sp-s) var(--sp-m); background: transparent; border: 0; border-bottom: 1px solid var(--line);
+  border-radius: 0; box-shadow: none; }
+.main [data-view] .shelf-head .label { font: 700 var(--fs-xl)/1.1 var(--display); letter-spacing: -.01em; text-transform: none; color: var(--ink); }
+.main [data-view] .shelf-body { border: 0; border-radius: var(--radius); }
+
+/* The archive: a plain list on the card, no frame of its own; its rows line up with the head's text. */
+.main [data-view="tower/archive"] .archive { padding: var(--sp-2xs) 0; border: 0; border-radius: 0; background: transparent; }
+.main [data-view="tower/archive"] .past { padding: var(--sp-s); }
+.main [data-view="tower/archive"] .past:hover { background: color-mix(in oklab, var(--ink) 5%, transparent); }
+.main [data-view="tower/archive"] .crew { border-left-width: 1px; }
+.main [data-view="tower/archive"] .filter { padding: var(--sp-2xs) var(--sp-m); border: 0; border-radius: var(--radius-s); background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.main [data-view="tower/archive"] .filter:focus { outline: 3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset: 0; }
+
+/* A worker's toolbar: name and status with its buttons at the right, the floor a quiet line under it, then the tabs.
+   The rows keep their boxes: the page measures .bar-main to decide which buttons fit and which go behind ⋯. */
+.main [data-view="tower/card"] .bar-top { gap: 2px; }
+.main [data-view="tower/card"] .bar-sub { color: var(--faint); font-size: var(--fs-xs); }
+.main [data-view] .call { font-family: var(--ui); font-weight: 600; letter-spacing: 0; }
+.main [data-view] .bar-info .call, .main [data-view] .ask .call { font: 700 var(--fs-xl)/1 var(--display); letter-spacing: -.01em; }
+.main [data-view] .bar-actions button:not(.icon-btn) { min-height: 26px; padding: 0 var(--sp-m); font-size: var(--fs-s); }
+.main [data-view] .bar-line { margin-top: var(--sp-s); }
+
+/* Tabs: quiet words, the open one on a soft plate, as a toolbar's segmented control draws it. */
+.main [data-view] .pane-tab { min-height: 24px; padding: 0 var(--sp-m); border: 0; border-radius: var(--radius-s); background: transparent; color: var(--muted); font-weight: 500; box-shadow: none; }
+.main [data-view] .pane-tab:hover { color: var(--ink); background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.main [data-view] .pane-tab.on { color: var(--ink); background: color-mix(in oklab, var(--ink) 9%, transparent); box-shadow: none; }
+
+/* The terminal: a neutral graphite in place of the core's green-black, in both schemes. The DOM renderer paints its
+   background inline, hence !important there; the ANSI colours are the core's and read on any dark ground. */
+:root, :root[data-scheme] { --enamel: #1e1e21; --enamel-2: #2a2a2e; }
+.main .screen, .shell-pane { background: var(--enamel); }
+.xterm, .xterm .xterm-scrollable-element, .xterm .xterm-viewport, .xterm .xterm-screen, .xterm .xterm-rows { background-color: var(--enamel) !important; }
+
+/* The rest of the capitals: the skyline's greeting, the settings' and the new worker's headings. */
+.main [data-view] .hello .big { font: 700 var(--fs-3xl)/1.1 var(--display); letter-spacing: -.015em; text-transform: none; }
+.settings h2, .spawn-form h2 { font: 700 var(--fs-m)/1.2 var(--display); letter-spacing: 0; text-transform: none; }
+
+/* ── Popovers, sheets and the dock ──────────────────────────────────────────────────────────────────────────────── */
+
+/* Settings: a menu-bar popover. Its sheet loads after this one, hence the extra .settings-pop. */
+.settings-pop .settings h2 { padding: var(--sp-l) var(--sp-xl) var(--sp-s); font: 700 var(--fs-l)/1.2 var(--display); letter-spacing: -.01em; text-transform: none; }
+.settings-pop .settings section { padding: var(--sp-m) var(--sp-xl); }
+.settings-pop .settings h3 { font: 600 var(--fs-s)/1.2 var(--ui); }
+.settings-pop .settings .seg { background: color-mix(in oklab, var(--ink) 7%, transparent); border-radius: var(--radius-s); padding: 2px; }
+.settings-pop .settings .seg button { border-radius: 5px; font-weight: 500; }
+.settings-pop .settings .seg button.on { box-shadow: var(--card-shadow); }
+.settings-pop .settings :is(input, select) { border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--panel); }
+.settings-pop .settings :is(input, select):focus-visible { outline: 3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset: 0; border-color: var(--accent); }
+
+/* Floor signs outside the sidebar (the new worker's form, the shell picker) match the sidebar's: a small mark. */
+.spawn-form header .sign { padding: var(--sp-2xs) var(--sp-s); background: transparent; border: 0; box-shadow: none; color: var(--ink); }
+.spawn-form header .sign .num { min-width: 18px; min-height: 18px; padding: 0 3px; border-radius: 5px; font: 700 10px/1 var(--ui); }
+.spawn-form header .sign .name { font: 600 var(--fs-m)/1.35 var(--ui); text-transform: none; letter-spacing: 0; }
+.spawn-form header { padding: var(--sp-l) var(--sp-xl); }
+.spawn-form :is(input, textarea, select) { border-radius: var(--radius-s); }
+.spawn-form :is(input, textarea, select):focus-visible { outline: 3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset: 0; border-color: var(--accent); }
+.shell-pick .pick-floor { box-shadow: none; color: var(--faint); font-size: var(--fs-xs); font-weight: 600; }
+.shell-pick .pick-floor::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: var(--sp-s); border-radius: 50%; background: var(--p, var(--deco)); }
+.shell-pick button { border-radius: var(--radius-s); }
+
+/* The shells' dock: tabs as quiet words, the open one on a plate, the tip a whisper at the right. */
+.dock .tab { min-height: 24px; padding-left: var(--sp-m); border: 0; border-radius: var(--radius-s); color: var(--muted); }
+.dock .tab:hover { background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.dock .tab.open { background: color-mix(in oklab, var(--ink) 9%, transparent); color: var(--ink); box-shadow: none; }
+.dock .tab::before { width: 7px; height: 7px; border-radius: 50%; }
+.dock .tab .what { font-weight: 600; }
+.dock .tab-add { border: 0; border-radius: var(--radius-s); }
+.dock .tab-add:hover { background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.dock .tip { color: var(--faint); font-size: var(--fs-xs); }
+.dock .tip .tip-body b { font-weight: 500; color: var(--muted); }
+.xterm .xterm-viewport { scrollbar-color: #ffffff33 transparent; }
+.xterm .xterm-scrollable-element > .scrollbar > .slider { background: #ffffff33 !important; }
+.xterm .xterm-scrollable-element > .scrollbar { background: transparent !important; }
+
+/* Stats: its tiles as cards on the window, like the workers; its choices as segmented controls. Its sheet loads
+   after this one, hence .side before each rule. */
+.main .stats-panel .tile { background: var(--panel); border: 0; border-radius: var(--radius); box-shadow: var(--card-shadow); }
+.main .stats-panel .tile b { font-weight: 700; letter-spacing: -.01em; }
+.main .stats-panel :is(.scopes, .ranges) button:not(.icon-btn) { border: 0; border-radius: var(--radius-s); background: transparent; color: var(--muted); font-weight: 500; box-shadow: none; }
+.main .stats-panel :is(.scopes, .ranges) button:not(.icon-btn):hover { background: color-mix(in oklab, var(--ink) 6%, transparent); color: var(--ink); }
+.main .stats-panel :is(.scopes, .ranges) button.on { background: var(--panel); color: var(--ink); box-shadow: var(--card-shadow); }
+
+/* The shortcuts sheet and toasts: system type, softer keys. */
+dialog.sheet h2 { font-size: var(--fs-xl); }
+.keys > h3 { font: 600 var(--fs-s)/1.2 var(--ui); color: var(--faint); }
+#toasts .toast { border: 0; border-radius: var(--radius); box-shadow: var(--shadow-pop); }
+
+/* The rail, when the sidebar folds: the window's chrome, its lamps as they were. */
+.rail .count { box-shadow: none; background: var(--c, var(--needs)); color: var(--on, var(--on-needs)); }
+/* The rail's count of waits in the colour of the loudest wait, as the inbox's count (lobby.js names it on the sidebar). */
+.side[data-wait-tone="needs"] .rail .count { --c: var(--needs); --on: var(--on-needs); }
+.side[data-wait-tone="ready"] .rail .count { --c: var(--ready); --on: var(--on-ready); }
+.side[data-wait-tone="working"] .rail .count { --c: var(--working); --on: var(--on-working); }
+.side[data-wait-tone="offered"] .rail .count { --c: var(--offered); --on: var(--on-offered); }
+.side[data-wait-tone="broken"] .rail .count { --c: var(--broken); --on: var(--on-broken); }
+.side[data-wait-tone="quiet"] .rail .count { --c: var(--quiet); --on: var(--on-quiet); }
+
+/* A worker's branch lives in its header (lobby.js adds a copy button after it), not in its sidebar card. */
+:is(.floors, .lobby-ghost) .sess .branch { display: none; }
+.main [data-view="tower/card"] .where-part .copy-branch { min-width: 20px; min-height: 20px; margin-left: var(--sp-2xs); vertical-align: middle; color: var(--faint); }
+.main [data-view="tower/card"] .where-part .copy-branch:hover { color: var(--ink); }
+.main [data-view="tower/card"] .where-part .copy-branch .icon { width: 13px; height: 13px; }
+
+/* A folded floor: its counts hold the right edge; its + takes their place while the name is pointed at, rather than
+   keeping an empty slot beside them. */
+.floors .floor.folded > .sign > [data-spawn] { position: absolute; top: 50%; right: 0; translate: 0 -50%; }
+.floors .floor.folded > .sign:is(:hover, :focus-within) .summary { visibility: hidden; }
+@media (hover: none) { .floors .floor.folded > .sign > [data-spawn] { position: static; translate: none; } .floors .floor.folded > .sign .summary { visibility: visible; } }
+.floor-menu [role="menuitem"] .check { flex: none; display: grid; place-items: center; color: var(--accent); }
+.floor-menu [role="menuitem"] .check .icon { width: 14px; height: 14px; color: inherit; }
+.floor-menu [role="menuitem"]:is(:hover, :focus-visible) .check { color: inherit; }
+/* Each well under its own head: the core gives every open tray `order: 1`, which would gather the wells after all
+   the heads. */
+.floor > .trays .region-row > .tray-open { order: 0; }
+.floor > .trays { gap: 0; }
+
+/* ── The inbox: who waits on you, on any floor, the longest wait first ─────────────────────────────────────────────
+   The first thing under the glance, above the floors: one row each, the worker's lamp, callsign and floor, how long
+   it has waited, and what it said. The glance's own "waiting on you" pill steps aside while the inbox shows. */
+.inbox { margin: 0 var(--sp-l) var(--sp-m) var(--sp-l); padding: var(--sp-2xs); border-radius: var(--radius); background: var(--panel); box-shadow: var(--card-shadow); }
+.inbox[hidden] { display: none; }
+.side.has-inbox .tally .chip.waits { display: none; }
+.inbox-head { display: flex; align-items: baseline; gap: var(--sp-s); padding: var(--sp-xs) var(--sp-s) var(--sp-2xs); }
+.inbox-title { font: 700 var(--fs-s)/1 var(--ui); color: var(--needs-text); }
+.inbox-n { min-width: 18px; padding: 1px 6px; border-radius: var(--radius-pill); background: var(--needs); color: var(--on-needs); font: 700 var(--fs-xs)/1.3 var(--ui); text-align: center; }
+.inbox-row { position: relative; display: flex; align-items: stretch; border-radius: var(--radius-s); }
+.inbox-row:hover, .inbox-row.sel { background: color-mix(in oklab, var(--c) 11%, transparent); }
+.inbox-row.sel { box-shadow: inset 2px 0 0 var(--c); }
+.inbox-go { flex: 1; min-width: 0; display: grid; gap: 2px; padding: var(--sp-s) var(--sp-s); border: 0; background: none; color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+.inbox-top { display: flex; align-items: center; gap: var(--sp-s); min-width: 0; }
+.inbox-top .lamp { width: 8px; height: 8px; }
+.inbox-call { flex: none; font: 600 var(--fs-s)/1.2 var(--ui); }
+.inbox-floor { flex: 0 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; color: var(--faint); font-size: var(--fs-xs); white-space: nowrap; text-overflow: ellipsis; }
+.inbox-floor::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 2px; background: var(--p, var(--deco)); }
+.inbox-ago { flex: none; margin-left: auto; color: var(--c-text); font: 600 var(--fs-xs)/1 var(--ui); font-variant-numeric: tabular-nums; }
+.inbox-gist { min-width: 0; padding-left: calc(8px + var(--sp-s)); overflow: hidden; color: var(--muted); font-size: var(--fs-xs); white-space: nowrap; text-overflow: ellipsis; }
+.inbox-dismiss { position: absolute; top: 4px; right: 4px; min-width: 20px; min-height: 20px; background: var(--panel); opacity: 0; }
+.inbox-row:is(:hover, :focus-within) .inbox-dismiss { opacity: 1; }
+.inbox-row:is(:hover, :focus-within) .inbox-ago { visibility: hidden; }
+@media (hover: none) { .inbox-dismiss { opacity: 1; } .inbox-ago { margin-right: 24px; } }
+
+/* The floor menu's glyphs, from the library's icons. */
+.floor-menu .ico { flex: none; display: grid; place-items: center; width: 14px; height: 14px; color: var(--muted); }
+.floor-menu .ico svg { width: 14px; height: 14px; }
+.floor-menu [role="menuitem"]:is(:hover, :focus-visible) .ico { color: inherit; }
+.floor-menu .repo-acts { cursor: default; }
+.floor-menu .repo-acts .icon-btn, .floors .sign > .floor-more { cursor: pointer; }
+
+/* A folded floor: its ⋯ holds the right edge with the counts beside it, as an open floor's does. */
+.floors .floor.folded > .sign > .floor-more { position: absolute; top: 50%; right: 0; translate: 0 -50%; }
+.floors .floor.folded > .sign > [data-spawn] { right: calc(var(--control) + var(--sp-2xs)); }
+.floors .floor.folded > .sign:has(> .floor-more[data-dot]) { padding-right: calc(var(--control) + var(--sp-2xs)); }
+.floors .floor.folded > .sign:has(> .floor-more[data-dot]):is(:hover, :focus-within) .summary { visibility: hidden; }
+
+/* The page's own inline sections (worktrees, tidy), opened from the menu: under the workers, headed by their tray
+   with an ×, like a tray's well. */
+.floor > .worktrees { order: 4; margin: 0 0 var(--sp-xs); padding: var(--sp-s) var(--sp-xs); border-radius: 0 0 var(--radius) var(--radius); background: var(--sunk); }
+.floor > .trays .tray.on[data-section] { display: flex; align-items: center; gap: var(--sp-s); width: 100%; min-height: 30px; margin-top: var(--sp-xs);
+  padding: 0 var(--sp-s) 0 var(--sp-m); border: 0; border-radius: var(--radius) var(--radius) 0 0; background: var(--sunk); color: var(--ink);
+  font: 600 var(--fs-s)/1 var(--ui); text-align: left; box-shadow: inset 0 -1px 0 var(--line); }
+.floor > .trays .tray.on[data-section]::after { content: ''; flex: none; width: 20px; height: 20px; margin-left: auto; background: var(--muted);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m6 6 8 8M14 6l-8 8'/%3E%3C/svg%3E") center / 20px no-repeat; }
+.floor > .worktrees .drafts-head:first-child:not(:has(button)) { display: none; }
+/* An open item: ticked, and an × in the tick's place while pointed at, since clicking it closes what it opened. */
+.floor-menu [role="menuitem"] .uncheck { display: none; flex: none; place-items: center; }
+.floor-menu [role="menuitem"] .uncheck .icon { width: 14px; height: 14px; }
+.floor-menu [role="menuitem"].on:is(:hover, :focus-visible) .check { display: none; }
+.floor-menu [role="menuitem"].on:is(:hover, :focus-visible) .uncheck { display: grid; }
+
+/* A worker's Resume and Let go, while its card is pointed at: a small floating toolbar in the top row's right end, in
+   place of its status and time, Resume filled as the way on, Let go quiet beside it. A worker gone home keeps a face
+   while pointed at, so the lift reads as a card. */
+.floors .sess:not(.sel):is(:hover, :focus-within) .act.resumes { inset: 3px var(--sp-xs) auto auto; display: flex; gap: 2px; margin: 0; padding: 2px;
+  border-radius: var(--radius); background: var(--panel); box-shadow: var(--card-lift); z-index: 2; }
+.floors .sess .act.resumes :is(button, .held) { display: inline-flex; align-items: center; gap: 4px; min-height: 24px; padding: 0 var(--sp-m); border: 0;
+  border-radius: 5px; background: transparent; color: var(--muted); font: 500 var(--fs-xs)/1 var(--ui); text-transform: capitalize; box-shadow: none; }
+.floors .sess .act.resumes :is(button, .held) .icon { width: 12px; height: 12px; }
+.floors .sess .act.resumes > :first-child { background: var(--accent); color: var(--on-offered); }
+.floors .sess .act.resumes > button:first-child:hover { background: color-mix(in oklab, var(--accent) 86%, #000); }
+.floors .sess .act.resumes > button:not(:first-child):hover { background: color-mix(in oklab, var(--ink) 8%, transparent); color: var(--ink); }
+.floors .sess:not(.sel):is(:hover, :focus-within):has(.act.resumes) > .top :is(.st, .ago) { visibility: hidden; }
+.floors .sess.gone:is(:hover, :focus-within) { background: var(--card-hover); opacity: 1; }
+
+/* ── The worker view ───────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* Its toolbar's small things: ⋯ a square like the other icons, dismiss a quiet word, the meta (model, effort) lobby.js
+   adds after the floor and branch a whisper. */
+.main [data-view="tower/card"] .bar-actions .region-more { min-width: 28px; min-height: 26px; padding: 0; justify-content: center; border: 0; background: transparent; color: var(--muted); }
+.main [data-view="tower/card"] .bar-actions .region-more:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); color: var(--ink); }
+.main [data-view="tower/card"] .bar-actions .region-more .n:empty { display: none; }
+.main [data-view="tower/card"] .bar-info .dismiss { padding: 2px var(--sp-s); border: 0; border-radius: var(--radius-s); background: transparent; color: var(--faint); font-size: var(--fs-xs); text-transform: capitalize; }
+.main [data-view="tower/card"] .bar-info .dismiss:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); color: var(--ink); }
+.main [data-view="tower/card"] .where-part .lobby-meta { color: var(--faint); }
+
+/* "Needs you": a banner in the worker's colour of attention, what it asked under its name, the way to answer at its
+   right. */
+.main [data-view="tower/card"] .ask { align-items: center; gap: var(--sp-m); padding: var(--sp-m) var(--sp-m) var(--sp-m) var(--sp-l); border: 0; border-radius: var(--radius);
+  background: color-mix(in oklab, var(--needs) 9%, var(--panel)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--needs) 22%, transparent); font-size: var(--fs-m); }
+.main [data-view="tower/card"] .ask::before { content: ''; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--needs); box-shadow: 0 0 0 4px color-mix(in oklab, var(--needs) 20%, transparent); }
+.main [data-view="tower/card"] .ask .what { display: grid; gap: 2px; white-space: normal; }
+.main [data-view="tower/card"] .ask .call { font: 700 var(--fs-m)/1.2 var(--ui); letter-spacing: 0; }
+.main [data-view="tower/card"] .ask .lobby-gist { display: block; overflow: hidden; color: var(--muted); font-size: var(--fs-s); white-space: nowrap; text-overflow: ellipsis; }
+.main [data-view="tower/card"] .ask button { min-height: 28px; border-radius: var(--radius-s); }
+
+/* The Brief: a conversation, not a log. Borderless bubbles, yours tinted in the accent at the right, the agent's on a
+   soft plate at the left at a reading measure; their labels quiet, their copy buttons only while pointed at; each
+   conversation opened by a centred rule. */
+.main .brief-view .bubble { border: 0; padding: var(--sp-m) var(--sp-l) var(--sp-m); border-radius: 14px; }
+.main .brief-view .bubble.you { max-width: min(72%, 680px); background: color-mix(in oklab, var(--accent) 13%, var(--panel)); border-bottom-right-radius: 4px; }
+.main .brief-view .bubble.agent { justify-self: start; max-width: min(100%, 84ch); background: var(--panel-2); border-bottom-left-radius: 4px; }
+.main .brief-view .bubble.peer { border: 1px dashed var(--line-strong); }
+.main .brief-view .bubble.sent { border: 1px dashed var(--line); }
+.main .brief-view .bubble.step { padding: var(--sp-2xs) 0; background: none; }
+.main .brief-view .bubble > header { font: 600 var(--fs-xs)/1.3 var(--ui); letter-spacing: .02em; color: var(--faint); }
+.main .brief-view .bubble > header .acts { opacity: 0; transition: opacity .12s ease-out; }
+.main .brief-view .bubble:is(:hover, :focus-within) > header .acts { opacity: 1; }
+.main .brief-view .bubble > header button { border: 0; border-radius: var(--radius-s); background: color-mix(in oklab, var(--ink) 6%, transparent); font-weight: 500; }
+.main .brief-view .brief-conv > h4 { display: flex; align-items: center; gap: var(--sp-m); color: var(--faint); font: 500 var(--fs-xs)/1 var(--ui); letter-spacing: 0; text-transform: none; }
+.main .brief-view .brief-conv > h4::before, .main .brief-view .brief-conv > h4::after { content: ''; flex: 1; border-top: 1px solid var(--line); }
+.main .brief-view .brief-conv + .brief-conv { border-top: 0; }
+.main .brief-view .brief-bar .seg { padding: 2px; border-radius: var(--radius-s); background: color-mix(in oklab, var(--ink) 7%, transparent); }
+.main .brief-view .brief-bar .seg button { border: 0; border-radius: 5px; font-weight: 500; }
+.main .brief-view .brief-bar .seg button.on { box-shadow: var(--card-shadow); }
+
+/* Reviews: notes as soft cards, a new one marked by an accent edge; the composer a plain field with an accent ring. */
+.main .reviews-panel .note { border: 0; border-radius: var(--radius); background: var(--panel-2); box-shadow: none; }
+.main .reviews-panel .note.new, .main .reviews-panel .note.mine { box-shadow: inset 3px 0 0 var(--accent); }
+.main .reviews-panel .note.resolved { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.main .reviews-panel .note > header b { font: 700 var(--fs-s)/1 var(--ui); letter-spacing: 0; }
+.main .reviews-panel .note > header button { border: 0; border-radius: var(--radius-s); color: var(--muted); }
+.main .reviews-panel .note > header button:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); color: var(--ink); }
+.main .reviews-panel .note > header .new-mark { font-size: var(--fs-xs); font-weight: 600; }
+.main .reviews-panel textarea { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: var(--sp-m) var(--sp-l); font: var(--fs-m)/1.5 var(--ui); resize: vertical; }
+.main .reviews-panel textarea:focus { outline: 3px solid color-mix(in oklab, var(--accent) 30%, transparent); outline-offset: 0; border-color: var(--accent); }
+.main .reviews-panel .reviews-head .send select { border-color: var(--line); border-radius: var(--radius-s); }
+
+/* Changes: its toolbar's choices as segments, like the Brief's. */
+.main .pane-panel :is(.seg, .segs) { border-radius: var(--radius-s); }
+
+/* The worker's details (ⓘ): a popover sheet, labels quiet, values in the system face but for paths. */
+.main [data-view="tower/card"] :is(.bar-details, .bar-left) { border: 0; border-radius: var(--radius); box-shadow: var(--shadow-pop); }
+.main [data-view="tower/card"] .bar-details h3 { font: 700 var(--fs-l)/1.2 var(--ui); letter-spacing: 0; }
+.main [data-view="tower/card"] .bar-details dt { color: var(--faint); font-size: var(--fs-xs); align-self: baseline; }
+.main [data-view="tower/card"] .bar-details dd { font: var(--fs-s)/1.45 var(--ui); }
+.main [data-view="tower/card"] .ask .what { display: block; }
+.main [data-view="tower/card"] .ask::before { margin-left: 4px; }
+/* The inbox's head in the colour of its loudest wait (needs you red, done green), its rows' states beside their ages. */
+.inbox-head .inbox-title { color: var(--ink); }
+.inbox-head .inbox-n { background: var(--c); color: var(--on); }
+.inbox-st { flex: none; margin-left: auto; color: var(--c-text); font: 600 var(--fs-xs)/1 var(--ui); }
+.inbox-st + .inbox-ago { margin-left: 0; color: var(--faint); font-weight: 500; }
+
+/* The worker's header line lobby.js draws from the board, in the core's line's place: floor · model · effort ·
+   branch with its copy button beside it · who hired it, on one line that ellipsizes. */
+.main [data-view="tower/card"] .where-part:has(.lobby-where) > .where { display: none; }
+.main [data-view="tower/card"] .lobby-where { display: inline-flex; align-items: center; gap: 0 .25em; min-width: 0; overflow: hidden; white-space: pre; text-overflow: ellipsis; }
+.main [data-view="tower/card"] .lobby-where > span { flex: none; }
+.main [data-view="tower/card"] .lobby-where .lobby-branch { color: var(--muted); }
+.main [data-view="tower/card"] .lobby-where .lobby-branch .icon { width: 11px; height: 11px; margin-right: 2px; vertical-align: -1px; }
+.main [data-view="tower/card"] .lobby-where .copy-branch { margin-left: 0; }
+.main [data-view="tower/card"] .lobby-where > .lobby-pair { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Stats, in the main pane ─────────────────────────────────────────────────────────────────────────────────────────
+   Opened from the chart icon in the header, over whatever the pane shows, closed by its × (or by opening a worker).
+   The sidebar keeps its floors. The page still names this state `on-stats` on the sidebar, which is how it's read. */
+.main .stats-pane { display: none; }
+body:has(.side.on-stats) .main .stats-pane { display: flex; flex-direction: column; position: absolute; inset: 0; z-index: 6; padding: var(--sp-l) var(--sp-l) 0;
+  border-radius: var(--radius-l); background: var(--panel); }
+.stats-pane-head { display: flex; align-items: center; padding: var(--sp-xs) var(--sp-s) var(--sp-m); border-bottom: 1px solid var(--line); }
+.stats-pane-head h2 { margin: 0; font: 700 var(--fs-xl)/1.1 var(--display); letter-spacing: -.01em; }
+.stats-pane-head .icon-btn { margin-left: auto; }
+body:has(.side.on-stats) .main .stats-side { display: block; flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-l) var(--sp-s) var(--sp-xl); }
+.side.on-stats .floors { display: grid; }
+.main .stats-panel .tiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.brand .stats-open[aria-pressed="true"] { color: var(--accent); background: var(--accent-wash); }
+.brand .board-sign { display: flex; }
+.brand .board-sign:empty { display: none; }
+/* A tab that ends in an icon button (a file a worker showed: open out, folder, editor, ×) ends at that button, as the
+   page draws it: the button's own room is the tab's right edge. */
+.main [data-view] .pane-tab:has(> .icon-btn:last-child) { padding-right: 2px; }
+
+/* ── Code and diffs: a GitHub-like theme ──────────────────────────────────────────────────────────────────────────
+   The core's diff and syntax colours were tuned for its warm paper. On Lobby's greys they read as olive and brick;
+   these are GitHub's: soft green and red rows, a stronger tint on the words a line changed, its syntax hues. Every
+   syntax colour is checked at 4.5:1 on the panel, both row tints and both word tints, in each scheme. */
+:root { --added: #116329; --removed: #a40e26; --added-wash: #e6ffec; --removed-wash: #ffebe9; --added-gutter: #ccffd8; --removed-gutter: #ffd7d5; --added-word: #abf2bc; --removed-word: #ffcecb;
+  --syn-keyword: #a0111f; --syn-string: #0a3069; --syn-number: #0550ae; --syn-comment: #57606a; --syn-title: #6639ba; --syn-type: #953800; --syn-attr: #0550ae; --syn-regexp: #116329; }
+@media (prefers-color-scheme: dark) { :root:not([data-scheme='light']) { --added: #56d364; --removed: #ff8b84; --added-wash: #1b3325; --removed-wash: #3b2124; --added-gutter: #21422c; --removed-gutter: #4d272b; --added-word: #1c4429; --removed-word: #572428;
+  --syn-keyword: #ff8f87; --syn-string: #a5d6ff; --syn-number: #9cd1ff; --syn-comment: #a3acb6; --syn-title: #d8b4fe; --syn-type: #ffb26b; --syn-attr: #9cd1ff; --syn-regexp: #8ee99a; } }
+:root[data-scheme='dark'] { --added: #56d364; --removed: #ff8b84; --added-wash: #1b3325; --removed-wash: #3b2124; --added-gutter: #21422c; --removed-gutter: #4d272b; --added-word: #1c4429; --removed-word: #572428;
+  --syn-keyword: #ff8f87; --syn-string: #a5d6ff; --syn-number: #9cd1ff; --syn-comment: #a3acb6; --syn-title: #d8b4fe; --syn-type: #ffb26b; --syn-attr: #9cd1ff; --syn-regexp: #8ee99a; }
+
+/* ── Moving a crew ───────────────────────────────────────────────────────────────────────────────────────────────────
+   Its place stays as a dashed slot; a ghost of its lead card (lobby.js) follows the pointer, lifted and tilted;
+   where it would land is an accent bar with a dot at its start, as Finder and Linear mark a drop. */
+.floors .crew-group.dragged { opacity: 1; }
+.floors .crew-group.dragged .sess { opacity: .45; background: transparent; box-shadow: none; outline: 1.5px dashed color-mix(in oklab, var(--accent) 55%, transparent); outline-offset: -1px; }
+.floors .crew-group.dragged .crew::after, .floors .crew-group.dragged .crew > *::before, .floors .crew-group.dragged .crew > *::after { opacity: .4; }
+.floors .crew-group.drop-before::before, .floors .sessions.drop-end::after { left: -4px; right: 0; height: 8px; border-radius: 0; background:
+    radial-gradient(circle at 4px 50%, var(--accent) 3.5px, transparent 4px), linear-gradient(var(--accent), var(--accent)) 6px 50% / calc(100% - 6px) 2px no-repeat; }
+.floors .crew-group.drop-before::before { top: calc(var(--sp-2xs) / -2 - 4px); }
+.floors .sessions.drop-end::after { bottom: calc(var(--sp-2xs) / -2 - 4px); }
+.lobby-ghost { position: fixed; z-index: 50; top: 0; left: 0; pointer-events: none; rotate: -1.5deg; scale: 1.02; transform-origin: 20% 50%;
+  border-radius: var(--radius); box-shadow: var(--shadow-pop); opacity: .97; }
+.lobby-ghost .sess { margin: 0; background: var(--panel); box-shadow: none; outline: 0; }
+.lobby-ghost .sess.sel { background: var(--accent-wash); }
+.lobby-ghost .crew-grip, .lobby-ghost .act { display: none; }
+@media (prefers-reduced-motion: reduce) { .lobby-ghost { rotate: none; scale: none; } }
+:root[data-motion='reduce'] .lobby-ghost { rotate: none; scale: none; }
+body:has(.lobby-ghost), body:has(.lobby-ghost) * { cursor: grabbing !important; }
+.floor-menu .menu-badge { display: flex; flex-wrap: wrap; gap: var(--sp-xs); padding: var(--sp-2xs) var(--sp-m); }
