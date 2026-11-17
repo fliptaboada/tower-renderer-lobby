@@ -6,6 +6,11 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-17
+
+### Changed
+- A floor's ⋯ menu no longer offers Messages: the tower no longer has Comms, so the item could never show.
+
 ### Fixed
 - A card that grew for its subagents shrinks back quickly once they end: an ended subagent dims and stays a
   moment, then its row folds away in under half a second instead of crawling shut over two.
@@ -40,7 +45,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/fliptaboada/tower-renderer-lobby/releases/tag/v0.1.0
