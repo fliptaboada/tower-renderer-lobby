@@ -1,7 +1,9 @@
 #!/bin/sh
-# Builds Lobby into out/: a fresh copy of your tower's own page, with two lines added to its index.html (the only edit
-# made to the copy): lobby.css after the page's styles, and lobby.js before page.js, so it regroups the page's frame
-# before the page first draws. Everything else is lobby.css and lobby.js, over the page's ids and the tower's API.
+# Builds Lobby into out/: a fresh copy of your tower's own page, its modules in a folder named after their contents
+# (out/p-<hash>/), with index.html and renderer.json beside it. index.html gets the only edits made to the copy: its
+# page.js points into that folder, lobby.css follows the page's styles, and lobby.js runs before page.js, so it
+# regroups the page's frame before the page first draws. Everything else is lobby.css and lobby.js, over the page's
+# ids and the tower's API.
 #
 #   ./sync.sh                        copy the page of the tower that is running (asked at $TOWER_URL, else at the port
 #                                    in $TOWER_CONFIG, else in ~/.tower/config.json)
@@ -30,9 +32,16 @@ else
 fi
 [ -f "$page/index.html" ] || { echo "sync: $page has no index.html: that is not the tower's page" >&2; exit 1; }
 
+# The page's modules go in a folder named after their contents, so a tower update gives every one of them a new URL:
+# WebKit (Tower.app) keeps a module it has loaded across reloads while its URL is the same, and the page's modules
+# import each other by name (./sidebar.js), so only a new folder makes it load the page the tower now has. index.html
+# (the page's address) and renderer.json (read by the tower) stay at the top.
+modules=p-$(cd "$page" && find . -type f ! -name index.html ! -name renderer.json | LC_ALL=C sort | xargs shasum | shasum | cut -c1-10)
 rm -rf "$here/out"
-mkdir -p "$here/out"
-cp -R "$page/." "$here/out/"
+mkdir -p "$here/out/$modules"
+cp -R "$page/." "$here/out/$modules/"
+mv "$here/out/$modules/index.html" "$here/out/"
+[ -f "$here/out/$modules/renderer.json" ] && mv "$here/out/$modules/renderer.json" "$here/out/"
 cp "$here/lobby.css" "$here/lobby.js" "$here/out/"
 # Each link carries its file's hash, so a reload after a sync loads the new files: WebKit (Tower.app) keeps a module
 # it has loaded across reloads while its URL is the same.
@@ -47,7 +56,7 @@ else
   commit='no git'
 fi
 built=$(date +%Y-%m-%d)
-perl -0pi -e "s#</head>#<meta name=\"lobby-version\" content=\"$version\" data-commit=\"$commit\" data-built=\"$built\">\n<link rel=\"stylesheet\" href=\"lobby.css?v=$css\">\n</head>#; s#(<script type=\"module\" src=\"page.js\"></script>)#<script type=\"module\" src=\"lobby.js?v=$js\"></script>\n\$1#" "$here/out/index.html"
-grep -q "lobby.css?v=$css" "$here/out/index.html" && grep -q "lobby.js?v=$js" "$here/out/index.html" || {
+perl -0pi -e "s#</head>#<meta name=\"lobby-version\" content=\"$version\" data-commit=\"$commit\" data-built=\"$built\">\n<link rel=\"stylesheet\" href=\"lobby.css?v=$css\">\n</head>#; s#<script type=\"module\" src=\"page.js\"></script>#<script type=\"module\" src=\"lobby.js?v=$js\"></script>\n<script type=\"module\" src=\"$modules/page.js\"></script>#" "$here/out/index.html"
+grep -q "lobby.css?v=$css" "$here/out/index.html" && grep -q "lobby.js?v=$js" "$here/out/index.html" && grep -q "src=\"$modules/page.js\"" "$here/out/index.html" || {
   echo "sync: $page/index.html no longer has </head> or page.js's script tag where Lobby expects them: Lobby needs an update" >&2; exit 1; }
 echo "lobby: built from $page into $here/out"

@@ -55,7 +55,7 @@ tower's own page, so its fixes and features arrive with each sync.
 
 ## Which version you run
 
-The sidebar's foot shows it: **Lobby 0.2.2** at the end of "Config and renderers". Its tip says the commit it was
+The sidebar's foot shows it: **Lobby 0.2.3** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
 it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
 [CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).
@@ -71,7 +71,9 @@ Lobby is two files over a fresh copy of the stock page, and touches nothing in t
 - `lobby.css` restyles the page with the design's own tokens.
 - `lobby.js` regroups the sidebar's frame before the page first draws, and adds the inbox, the floor menus and the
   header line. It reads the board and the tower's library, and keeps one thing: the viewer's choice for the inbox.
-- `sync.sh` makes the only edit to the copy: one line that links `lobby.css` and one that loads `lobby.js`.
+- `sync.sh` puts the page's modules in a folder named after their contents (`out/p-<hash>/`), so after a tower update
+  Tower.app loads the new page instead of the copy it kept, and makes the only edits to the copy, in `index.html`: a
+  line that links `lobby.css`, one that loads `lobby.js`, and `page.js` pointed into that folder.
 
 It builds on the page's element ids and classes, which are not a contract between tower versions. If a tower update
 moves them, `sync.sh` fails loudly when it can't add its two lines; anything subtler shows as a part of the page that
