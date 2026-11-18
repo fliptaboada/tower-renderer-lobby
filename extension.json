@@ -1,0 +1,8 @@
+{
+  "id": "lobby",
+  "version": "0.2",
+  "title": "Lobby",
+  "description": "A restyled copy of the tower's page: the inbox, the floor menus and a regrouped sidebar, over the tower's own modules.",
+  "requires": { "tower": "2.13" },
+  "renderers": { "lobby": { "root": "out" } }
+}
