@@ -62,12 +62,16 @@ line, then the version's changelog section without its heading:
 
 ```sh
 v=$(git show origin/main:VERSION | tr -d '[:space:]')
-{ printf 'Lobby %s\n\n' "$v"; git show origin/main:CHANGELOG.md | awk -v h="## [$v]" 'index($0, h) == 1 { on = 1; next } /^## |^\[/ { on = 0 } on'; } > "$TMPDIR/notes-$v"
+{ printf 'Lobby %s\n\n' "$v"; git show origin/main:CHANGELOG.md | sed -n "/^## \[$v\]/,/^## \[/{/^## \[/d;/^\[/d;p;}"; } > "$TMPDIR/notes-$v"
 cat "$TMPDIR/notes-$v"                      # read it before tagging
 git tag -a "v$v" -F "$TMPDIR/notes-$v" origin/main --cleanup=whitespace
 git push origin "v$v"
 git tag -l -n99 "v$v"                       # what the tag says
 ```
+
+The sed prints from the version's heading to the next one, dropping the headings and the compare links at the foot.
+Keep a dollar sign followed by a digit out of this file: Claude Code reads one in a skill as a placeholder for the
+skill's arguments and swaps in a word of the request when the skill is started with any, code blocks included.
 
 `--cleanup=whitespace` trims the blank lines around the notes and keeps the `### Added` lines, which git's default
 cleanup would drop as comments. Tags are published: never move or re-push one that is out unless the user asks.
