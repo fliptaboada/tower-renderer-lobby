@@ -340,6 +340,18 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .side-more[open] > summary::before { rotate: 90deg; }
 .side-more > summary:hover { color: var(--ink); }
 .side-more .side-foot { margin-top: 0; padding-top: 0; border-top: 0; }
+/* The page's Extensions entry, a line of the foot above the fold: one hairline over both, its lamp in the column of
+   the fold's ›, its words in the summary's face. A pointer resting on it opens the list; a click, the full view. */
+.side .side-extensions { padding: var(--sp-s) var(--sp-xl) 0; }
+.side .side-extensions + .side-more { margin-top: 0; border-top: 0; }
+.side .extensions-open { gap: 0; margin: 0; padding: 0; border-radius: 0; background: none; color: var(--faint); font: var(--fs-xs)/1.4 var(--ui); }
+.side .extensions-open .lamp { margin-right: calc(1em - 7px); }
+.side .extensions-open b { margin-left: .35em; color: var(--muted); font-weight: 600; }
+.side .extensions-open:is(:hover, :focus-visible, .on) { background: none; color: var(--ink); }
+.side .extensions-open:is(:hover, :focus-visible, .on) b { color: var(--ink); }
+.side .extensions-open.broken, .side .extensions-open.broken b { color: var(--c-text); }
+.extensions-pop .extension-row { border-radius: var(--radius-s); }
+.extensions-pop .extension-row:hover, .extensions-pop .extension-row:focus-visible { background: color-mix(in oklab, var(--ink) 7%, transparent); }
 
 /* Sheets and the palette: Raycast's floating panel. */
 dialog { border: 0; border-radius: var(--radius-l); box-shadow: var(--shadow-pop); }
@@ -371,6 +383,17 @@ dialog.palette { margin-top: 16vh; border-radius: 14px; }
 .main [data-view="tower/archive"] .crew { border-left-width: 1px; }
 .main [data-view="tower/archive"] .filter { padding: var(--sp-2xs) var(--sp-m); border: 0; border-radius: var(--radius-s); background: color-mix(in oklab, var(--ink) 6%, transparent); }
 .main [data-view="tower/archive"] .filter:focus { outline: 3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset: 0; }
+
+/* Extensions: no grey box around the list, each extension a card on the card as the workers are, its state in the
+   lamp, the colour bar kept for the ones that need a look. */
+.main [data-view="tower/extensions"] .extensions { padding: var(--sp-m) var(--sp-2xs); border: 0; border-radius: 0; background: transparent; }
+.main [data-view="tower/extensions"] .extensions-panel { gap: var(--sp-s); }
+.main [data-view="tower/extensions"] .extension-entry { border: 0; border-radius: var(--radius); background: var(--panel-2); box-shadow: var(--card-shadow); }
+.main [data-view="tower/extensions"] .extension-entry:not(.quiet) { box-shadow: inset 3px 0 0 var(--c), var(--card-shadow); }
+.main [data-view="tower/extensions"] .extension-entry .head .lamp { width: 7px; height: 7px; }
+.main [data-view="tower/extensions"] .extension-entry .title { font-weight: 600; }
+.main [data-view="tower/extensions"] .extension-entry .ids { margin-left: calc(7px + var(--sp-m)); }
+.main [data-view="tower/extensions"] .extension-entry :is(.brief, .declared, .problems) { margin-left: calc(7px + var(--sp-m)); }
 
 /* A worker's toolbar: name and status with its buttons at the right, the floor a quiet line under it, then the tabs.
    The rows keep their boxes: the page measures .bar-main to decide which buttons fit and which go behind ⋯. */

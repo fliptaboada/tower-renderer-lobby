@@ -6,6 +6,13 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+### Changed
+- The tower's new Extensions entry, apart from the rate limits now, sits in Lobby's foot as one quiet line above
+  "Config and renderers": its lamp under the fold's ›, one hairline over both, nothing pushed apart when the floors
+  are few.
+- The Extensions view drops its grey box: each extension is a card on the pane, like the workers, with the colour
+  bar kept for the ones that need a look.
+
 ## [0.2.3] - 2026-11-17
 
 ### Fixed
