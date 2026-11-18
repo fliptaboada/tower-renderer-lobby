@@ -6,6 +6,12 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-11-17
+
+### Fixed
+- After a tower update and `./sync.sh`, Tower.app loads the new page on a reload. It used to keep the page it had
+  already loaded, so it could show the inbox and no floors until it was quit and opened again.
+
 ## [0.2.2] - 2026-11-17
 
 ### Changed
@@ -45,7 +51,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.1.0...v0.2.0
