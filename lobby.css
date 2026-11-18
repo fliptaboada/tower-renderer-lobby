@@ -289,7 +289,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .sess.sel, .floors .sess.sel { background: var(--accent-wash); border-color: transparent; box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 45%, transparent); }
 .sess .top { gap: var(--sp-s); }
 .sess .lamp { width: 8px; height: 8px; }
-.sess .call { font-size: var(--fs-m); }
+.sess .call { flex: none; font-size: var(--fs-m); white-space: nowrap; }
 .sess .st { font-weight: 500; color: var(--faint); }
 .sess > :not(.top, .act) { margin-left: calc(8px + var(--sp-s)); }
 .sess .line { margin-top: 1px; font-size: var(--fs-xs); color: var(--faint); }

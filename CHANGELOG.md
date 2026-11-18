@@ -10,6 +10,10 @@ fixes or polishes what is there.
 - Lobby installs as a tower extension: `extensions.lobby.path` in the config, pointing at the clone, in place of
   `renderers.lobby` with the path of `out/`. It needs a tower from 2.13, and `./sync.sh` still builds the page.
 
+### Fixed
+- A hire's callsign in a crew stays on one line (`ODIN-18`, not `ODIN-` over `18`); the floor and status beside it
+  ellipsize instead.
+
 ## [0.2.4] - 2026-11-18
 
 ### Changed
