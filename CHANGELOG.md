@@ -6,6 +6,8 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-18
+
 ### Changed
 - Lobby installs as a tower extension: `extensions.lobby.path` in the config, pointing at the clone, in place of
   `renderers.lobby` with the path of `out/`. It needs a tower from 2.13, and `./sync.sh` still builds the page.
@@ -68,7 +70,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.1...v0.2.2
