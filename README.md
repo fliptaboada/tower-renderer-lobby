@@ -32,25 +32,28 @@ cd tower-renderer-lobby
 ./sync.sh
 ```
 
-`sync.sh` asks your running tower where its page is, copies it into `out/` and adds Lobby to it. Then declare it in
-`~/.tower/config.json`, with the absolute path of your clone:
+`sync.sh` asks your running tower where its page is, copies it into `out/` and adds Lobby to it. Lobby is an
+extension (`extension.json`, for a tower from 2.13): declare the clone in `~/.tower/config.json`, with its absolute
+path, and the tower serves `out/` from it in place:
 
 ```json
-"renderers": { "lobby": { "root": "/path/to/tower-renderer-lobby/out" } }
+"extensions": { "lobby": { "path": "/path/to/tower-renderer-lobby" } }
 ```
 
-To set the inbox for every browser until a viewer picks in Settings, give the entry `"settings": { "inbox": "folded" }`
-(or `"open"`, `"off"`).
+`out/` is not in git: it is what `./sync.sh` builds, so the extension has no page until you run it (and after every
+update, below). To set the inbox for every browser until a viewer picks in Settings, give the renderer
+`"renderers": { "lobby": { "settings": { "inbox": "folded" } } }` (or `"open"`, `"off"`).
 
 Check the config with `tower config check`, and open `http://127.0.0.1:<your tower's port>/r/lobby/`. To make it the
-page `/` opens (and Tower.app shows), add `"renderer": "lobby"` too. The tower reads the config again on its own: no
-restart.
+page `/` opens (and Tower.app shows), add `"renderer": "lobby"` too. If the extension doesn't show up, `tower
+extensions` says why.
 
 If no tower is running, point `sync.sh` at your tower's checkout instead: `./sync.sh ~/code/the-tower`.
 
 ## Update
 
-After `tower update`, or a `git pull` here, run `./sync.sh` again and reload the page. Lobby sits on top of your
+After `tower update`, or a `git pull` here, run `./sync.sh` again and reload the page (`tower extensions restart lobby`
+too, when `extension.json` changed). Lobby sits on top of your
 tower's own page, so its fixes and features arrive with each sync.
 
 ## Which version you run
@@ -62,7 +65,7 @@ it to copy that line, for a bug report. Releases are tagged `v<version>`, after 
 
 ## Uninstall
 
-Remove the `lobby` entry (and `"renderer": "lobby"`, if you set it) from your config, then delete the clone.
+Remove the `extensions.lobby` entry (and `renderers.lobby`, and `"renderer": "lobby"`, if you set them) from your config, then delete the clone.
 
 ## How it works
 
@@ -86,7 +89,7 @@ with headless Chrome and ffmpeg. From a tower checkout:
 
 ```sh
 npm run sandbox -- up                                     # prints the sandbox's URL
-# add "renderers": { "lobby": { "root": "<this clone>/out" } } to the sandbox's config.json
+# add "extensions": { "lobby": { "path": "<this clone>" } } to the sandbox's config.json
 npm run -s sandbox -- run sh <this clone>/demo/populate.sh
 TOWER_URL=<the sandbox's URL> <this clone>/sync.sh
 node <this clone>/demo/record.mjs <the sandbox's URL> /tmp/lobby/lobby-demo.mp4

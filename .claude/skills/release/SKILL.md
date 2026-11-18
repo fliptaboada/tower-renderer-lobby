@@ -38,9 +38,10 @@ function changed.
 ## 3. Bump the version
 
 Before 1.0: **minor** (`0.2.0` → `0.3.0`) when the release adds something to see or set (a feature, a setting, a
-config key); **patch** (`0.2.0` → `0.2.1`) for fixes and polish. Change all three:
+config key); **patch** (`0.2.0` → `0.2.1`) for fixes and polish. Change these (four with a minor bump, three with a patch):
 
 - `VERSION`: the number alone.
+- `extension.json`: its `version`, which the tower takes as `major.minor` only (`0.2` for `0.2.4`): it changes with a minor bump, never a patch.
 - `README.md`: the example in "Which version you run" (`**Lobby 0.2.1**`).
 - `CHANGELOG.md`: rename `## [Unreleased]` to `## [<version>] - <YYYY-MM-DD>`, put a fresh empty `## [Unreleased]`
   above it, and update the compare links at the foot (`[Unreleased]` from the new tag; the new version from the
