@@ -6,6 +6,15 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-11-18
+
+### Changed
+- The tower's new Extensions entry, apart from the rate limits now, sits in Lobby's foot as one quiet line above
+  "Config and renderers": its lamp under the fold's ›, one hairline over both, nothing pushed apart when the floors
+  are few.
+- The Extensions view drops its grey box: each extension is a card on the pane, like the workers, with the colour
+  bar kept for the ones that need a look.
+
 ## [0.2.3] - 2026-11-17
 
 ### Fixed
@@ -51,7 +60,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.0...v0.2.1
