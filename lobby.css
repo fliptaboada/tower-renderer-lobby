@@ -212,10 +212,14 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .floors .sign .fold .icon { color: var(--faint); }
 .floors .sign .summary .chip { background: transparent; color: var(--muted); font-weight: 600; }
 .floors .sign .summary .chip.waits.some { background: var(--c); color: var(--on); box-shadow: none; }
-.floors .sign > button { opacity: 0; background: transparent; border-color: transparent; transition: opacity .12s ease-out; }
-.floors .sign:is(:hover, :focus-within) > button { opacity: 1; }
-.floors .sign > button:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
-@media (hover: none) { .floors .sign > button { opacity: 1; } }
+/* A newer page draws the sign's name and buttons inside a <tower-menu-area> (no box of its own), so each rule on the
+   sign's buttons names them there too. */
+.floors .sign > button, .floors .sign > tower-menu-area > button { opacity: 0; background: transparent; border-color: transparent; transition: opacity .12s ease-out; }
+.floors .sign:is(:hover, :focus-within) > button, .floors .sign:is(:hover, :focus-within) > tower-menu-area > button { opacity: 1; }
+.floors .sign > button:hover, .floors .sign > tower-menu-area > button:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+@media (hover: none) { .floors .sign > button, .floors .sign > tower-menu-area > button { opacity: 1; } }
+/* The page's own ⋯ on a floor's name: Lobby's ⋯ (below) is the floor's menu, so the page's would be a second one. */
+.floors .sign tower-menu-button { display: none; }
 /* A floor's body holds its workers and what asks of you, nothing else. The rest the floor holds (its trays, shelf
    pages, repos and its own buttons) is in its menu: ⋯ on the floor's name, or a right-click on the name. lobby.js
    builds the menu from those elements, hidden here, and presses the real one, so what an extension adds is in it.
@@ -487,9 +491,12 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 
 /* A folded floor: its counts hold the right edge; its + takes their place while the name is pointed at, rather than
    keeping an empty slot beside them. */
-.floors .floor.folded > .sign > [data-spawn] { position: absolute; top: 50%; right: 0; translate: 0 -50%; }
+.floors .floor.folded > .sign > [data-spawn], .floors .floor.folded > .sign > tower-menu-area > [data-spawn] { position: absolute; top: 50%; right: 0; translate: 0 -50%; }
 .floors .floor.folded > .sign:is(:hover, :focus-within) .summary { visibility: hidden; }
-@media (hover: none) { .floors .floor.folded > .sign > [data-spawn] { position: static; translate: none; } .floors .floor.folded > .sign .summary { visibility: visible; } }
+@media (hover: none) {
+  .floors .floor.folded > .sign > [data-spawn], .floors .floor.folded > .sign > tower-menu-area > [data-spawn] { position: static; translate: none; }
+  .floors .floor.folded > .sign .summary { visibility: visible; }
+}
 .floor-menu [role="menuitem"] .check { flex: none; display: grid; place-items: center; color: var(--accent); }
 .floor-menu [role="menuitem"] .check .icon { width: 14px; height: 14px; color: inherit; }
 .floor-menu [role="menuitem"]:is(:hover, :focus-visible) .check { color: inherit; }
@@ -544,7 +551,7 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 
 /* A folded floor: its ⋯ holds the right edge with the counts beside it, as an open floor's does. */
 .floors .floor.folded > .sign > .floor-more { position: absolute; top: 50%; right: 0; translate: 0 -50%; }
-.floors .floor.folded > .sign > [data-spawn] { right: calc(var(--control) + var(--sp-2xs)); }
+.floors .floor.folded > .sign > [data-spawn], .floors .floor.folded > .sign > tower-menu-area > [data-spawn] { right: calc(var(--control) + var(--sp-2xs)); }
 .floors .floor.folded > .sign:has(> .floor-more[data-dot]) { padding-right: calc(var(--control) + var(--sp-2xs)); }
 .floors .floor.folded > .sign:has(> .floor-more[data-dot]):is(:hover, :focus-within) .summary { visibility: hidden; }
 

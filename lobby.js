@@ -550,7 +550,13 @@ menu.addEventListener('keydown', (e) => {
   }
   // The page's own keys (Esc to the skyline, N to the next waiting) stay out of the menu; Esc still closes it.
   e.stopPropagation()
-  if (e.key === 'Tab') menu.hidePopover()
+  if (e.key === 'Escape' || e.key === 'Tab') {
+    if (e.key === 'Escape') e.preventDefault()
+    // Focus goes back to the ⋯ before the menu hides, not by the browser as it hides: the ⋯'s tip then shows outside
+    // the hiding, which a newer page's tooltip, a popover itself, can't show during.
+    opener?.focus()
+    menu.hidePopover()
+  }
 })
 
 /** The ⋯ whose menu was open when the pointer went down on it. The menu closes itself on that press (a popover
@@ -596,6 +602,8 @@ const queueDecorate = () => {
 new MutationObserver(queueDecorate).observe(floors, { childList: true, subtree: true })
 window.tower.subscribe(() => (queueDecorate(), drawInbox()))
 floors.addEventListener('pointerdown', (e) => e.button === 2 && /** @type {Element} */ (e.target).closest?.('section.floor > .sign') && noteOpen(), true)
+// Taken on the way down: a newer page opens its own menu for a right-click on the name, unless the event comes to it
+// already handled.
 floors.addEventListener('contextmenu', (e) => {
   const sign = /** @type {Element} */ (e.target).closest?.('section.floor > .sign')
   const more = /** @type {HTMLElement | null | undefined} */ (sign?.querySelector(':scope > .floor-more'))
@@ -604,7 +612,7 @@ floors.addEventListener('contextmenu', (e) => {
   // A right-click on the name whose menu is open closes it, as a second click on its ⋯ does.
   if (wasOpenFor === more) return void ((wasOpenFor = null), menu.hidePopover())
   open((sign.parentElement?.getAttribute('data-hold') ?? '').replace(/^floor:/, ''), more, { x: e.clientX, y: e.clientY })
-})
+}, true)
 void readDismissed()
 
 // Stats open in the main pane, over what is there (lobby.css), from the header's chart icon. Opening a worker or a
