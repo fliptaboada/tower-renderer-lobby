@@ -6,6 +6,8 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-19
+
 ### Fixed
 - In a crew, a hire working on another floor hangs from the trunk like the others: its elbow turns into the chip's
   middle, and the trunk no longer jogs sideways past it.
@@ -82,7 +84,9 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.2...v0.2.3
