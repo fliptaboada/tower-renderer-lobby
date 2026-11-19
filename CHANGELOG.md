@@ -6,6 +6,14 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-19
+
+### Fixed
+- On the tower from v2.14.0-12 (API 2.20): a floor's draft and + buttons show only on hover again, a folded floor's
+  + holds the right edge again, and the floor keeps one ⋯, Lobby's, where the page now draws its own beside it. A
+  right-click on a floor's name opens Lobby's menu alone.
+- Closing a floor's menu with Esc or Tab no longer throws a page error on the newer tower.
+
 ## [0.3.0] - 2026-11-18
 
 ### Changed
