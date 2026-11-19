@@ -6,6 +6,10 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+### Fixed
+- In a crew, a hire working on another floor hangs from the trunk like the others: its elbow turns into the chip's
+  middle, and the trunk no longer jogs sideways past it.
+
 ## [0.3.1] - 2026-11-19
 
 ### Fixed

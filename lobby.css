@@ -312,6 +312,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .floors .crew > :is(.sess, .gone-home, .away)::before { content: ''; position: absolute; left: calc(-1 * var(--tx)); top: calc(-1 * var(--tg)); width: calc(var(--tx) - 2px);
   height: calc(var(--ty) + var(--tg)); border: solid var(--tree); border-width: 0 0 1px 1px; border-bottom-left-radius: 7px; pointer-events: none; }
 .floors .crew > .gone-home::before { --ty: 12px; }
+/* A hire on another floor is a chip with a 4px stripe in that floor's colour for its left border, 3px wider than a
+   card's: its lines step back by those 3px to stay on the trunk, and its elbow turns at the chip's middle. */
+.floors .crew > .away::before, .floors .crew > .away:not(:last-child)::after { margin-left: -3px; }
+.floors .crew > .away::before { --ty: 11px; }
 .floors .crew > .sess.gone::before { border-style: dashed; }
 .floors .crew > .crew::before { content: ''; position: absolute; left: calc(-1 * var(--tx) - 9px); top: calc(-1 * var(--tg)); height: calc(var(--tg) + 1px);
   border-left: 1px solid var(--tree); pointer-events: none; }
