@@ -550,7 +550,13 @@ menu.addEventListener('keydown', (e) => {
   }
   // The page's own keys (Esc to the skyline, N to the next waiting) stay out of the menu; Esc still closes it.
   e.stopPropagation()
-  if (e.key === 'Tab') menu.hidePopover()
+  if (e.key === 'Escape' || e.key === 'Tab') {
+    if (e.key === 'Escape') e.preventDefault()
+    // Focus goes back to the ⋯ before the menu hides, not by the browser as it hides: the ⋯'s tip then shows outside
+    // the hiding, which a newer page's tooltip, a popover itself, can't show during.
+    opener?.focus()
+    menu.hidePopover()
+  }
 })
 
 /** The ⋯ whose menu was open when the pointer went down on it. The menu closes itself on that press (a popover
