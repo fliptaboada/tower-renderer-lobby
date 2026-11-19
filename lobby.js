@@ -596,6 +596,8 @@ const queueDecorate = () => {
 new MutationObserver(queueDecorate).observe(floors, { childList: true, subtree: true })
 window.tower.subscribe(() => (queueDecorate(), drawInbox()))
 floors.addEventListener('pointerdown', (e) => e.button === 2 && /** @type {Element} */ (e.target).closest?.('section.floor > .sign') && noteOpen(), true)
+// Taken on the way down: a newer page opens its own menu for a right-click on the name, unless the event comes to it
+// already handled.
 floors.addEventListener('contextmenu', (e) => {
   const sign = /** @type {Element} */ (e.target).closest?.('section.floor > .sign')
   const more = /** @type {HTMLElement | null | undefined} */ (sign?.querySelector(':scope > .floor-more'))
@@ -604,7 +606,7 @@ floors.addEventListener('contextmenu', (e) => {
   // A right-click on the name whose menu is open closes it, as a second click on its ⋯ does.
   if (wasOpenFor === more) return void ((wasOpenFor = null), menu.hidePopover())
   open((sign.parentElement?.getAttribute('data-hold') ?? '').replace(/^floor:/, ''), more, { x: e.clientX, y: e.clientY })
-})
+}, true)
 void readDismissed()
 
 // Stats open in the main pane, over what is there (lobby.css), from the header's chart icon. Opening a worker or a
