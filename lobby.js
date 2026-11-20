@@ -24,6 +24,12 @@ import { esc, modelName } from '/lib/words.js'
   const pane = make(`<section class="stats-pane" aria-label="stats"><header class="stats-pane-head"><h2>Stats</h2><button class="icon-btn" data-side-view="floors" aria-label="close stats" data-tip="close stats">${ICON.close}</button></header></section>`)
   pane.append(byId('stats'))
   byId('view-host').before(pane)
+  // Extensions' sidebar tabs: an extension with no region for one (Artifacts) places its button after the page's last
+  // `[data-side-view]`. With the switch gone, that would be the stats pane's close button, hidden in the main pane; so
+  // the last one is an anchor in a hidden holder at the end of the page, the tabs land beside it, and the brand's views
+  // button (below) shows them.
+  document.body.append(make('<div class="lobby-side-tabs" hidden><span class="lobby-side-anchor" data-side-view="floors"></span></div>'))
+  byId('settings-open').before(make(`<button type="button" class="icon-btn views-open" hidden aria-label="views"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/></svg></button>`))
   const more = make('<details class="side-more"><summary>Config and renderers</summary></details>')
   byId('side-foot').before(more)
   more.append(byId('side-foot'), byId('renderers'))
@@ -522,7 +528,10 @@ const fill = (floor) => {
 
 /** Opens the floor's menu at a point, or under the button that opened it. @param {string} floor @param {HTMLElement} from @param {{x: number, y: number}} [at] */
 const open = (floor, from, at) => {
-  if (!fill(floor)) return
+  if (fill(floor)) showMenu(from, at)
+}
+/** Shows the menu as filled, at a point or under the button that opened it. @param {HTMLElement} from @param {{x: number, y: number}} [at] */
+const showMenu = (from, at) => {
   opener = from
   menu.showPopover()
   const r = from.getBoundingClientRect()
@@ -614,6 +623,41 @@ floors.addEventListener('contextmenu', (e) => {
   open((sign.parentElement?.getAttribute('data-hold') ?? '').replace(/^floor:/, ''), more, { x: e.clientX, y: e.clientY })
 }, true)
 void readDismissed()
+
+// The extensions' tabs, from the brand's grid icon. With one tab (Artifacts today) the icon is that tab: it opens its
+// view, lit while it is open, and a second press closes it. With more, it opens a menu of them, the open one ticked,
+// which closes from its own item as a floor's menu does. The tabs themselves stay hidden beside the anchor; the page's
+// extensions mark theirs `aria-current` while their view is open, and a press here is a press on theirs.
+const sideTabs = /** @type {HTMLElement} */ (document.querySelector('.lobby-side-tabs'))
+const viewsOpen = /** @type {HTMLButtonElement} */ (document.querySelector('.brand .views-open'))
+const extTabs = () => /** @type {HTMLElement[]} */ ([...sideTabs.children].filter((t) => t.matches('button, a')))
+  .sort((a, b) => (a.textContent ?? '').localeCompare(b.textContent ?? ''))
+const tabName = (/** @type {HTMLElement} */ t) => (t.textContent ?? '').trim() || t.getAttribute('aria-label') || 'view'
+const tabOn = (/** @type {HTMLElement} */ t) => t.getAttribute('aria-current') === 'true'
+const closeView = () => /** @type {HTMLElement | null} */ (document.querySelector('#view-host .view-root:not(.kept) [data-home]'))?.click()
+const drawViews = () => {
+  const tabs = extTabs()
+  const one = tabs.length === 1 ? tabs[0] : null
+  const on = tabs.some(tabOn)
+  const tip = one ? `${tabName(one)}${one.title ? `: ${one.title}` : ''}${on ? ' · press to close' : ''}` : `${tabs.map(tabName).join(', ')}`
+  const want = { hidden: tabs.length === 0, label: one ? tabName(one) : 'views', tip, pressed: String(on), popup: one ? null : 'menu' }
+  if (viewsOpen.hidden !== want.hidden) viewsOpen.hidden = want.hidden
+  if (viewsOpen.getAttribute('aria-label') !== want.label) viewsOpen.setAttribute('aria-label', want.label)
+  if (viewsOpen.dataset.tip !== want.tip) viewsOpen.dataset.tip = want.tip
+  if (viewsOpen.getAttribute('aria-pressed') !== want.pressed) viewsOpen.setAttribute('aria-pressed', want.pressed)
+  if (viewsOpen.getAttribute('aria-haspopup') !== want.popup) want.popup ? viewsOpen.setAttribute('aria-haspopup', want.popup) : viewsOpen.removeAttribute('aria-haspopup')
+}
+new MutationObserver(drawViews).observe(sideTabs, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-current', 'title'], characterData: true })
+addEventListener('hashchange', () => requestAnimationFrame(drawViews))
+drawViews()
+viewsOpen.addEventListener('pointerdown', noteOpen)
+viewsOpen.addEventListener('click', () => {
+  const tabs = extTabs()
+  if (tabs.length === 1) return void (tabOn(tabs[0]) ? closeView() : tabs[0].click())
+  if (wasOpenFor === viewsOpen) return void ((wasOpenFor = null), menu.hidePopover())
+  menu.replaceChildren(label('Views'), ...tabs.map((t) => tabOn(t) ? entry({ what: tabName(t), glyph: 'collection', on: true, tip: t.title }) : entry({ what: tabName(t), glyph: 'collection', tip: t.title, run: () => t.click() })))
+  showMenu(viewsOpen)
+})
 
 // Stats open in the main pane, over what is there (lobby.css), from the header's chart icon. Opening a worker or a
 // floor's thing from the sidebar closes them, since what was asked for would otherwise sit behind them.

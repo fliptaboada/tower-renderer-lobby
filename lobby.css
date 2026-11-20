@@ -679,7 +679,7 @@ body:has(.side.on-stats) .main .stats-pane { display: flex; flex-direction: colu
 body:has(.side.on-stats) .main .stats-side { display: block; flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-l) var(--sp-s) var(--sp-xl); }
 .side.on-stats .floors { display: grid; }
 .main .stats-panel .tiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-.brand .stats-open[aria-pressed="true"] { color: var(--accent); background: var(--accent-wash); }
+.brand :is(.stats-open, .views-open)[aria-pressed="true"] { color: var(--accent); background: var(--accent-wash); }
 .brand .board-sign { display: flex; }
 .brand .board-sign:empty { display: none; }
 /* A tab that ends in an icon button (a file a worker showed: open out, folder, editor, ×) ends at that button, as the
