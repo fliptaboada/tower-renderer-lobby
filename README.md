@@ -17,6 +17,7 @@ extensions: only the page you look at changes. Inspired by Arc's window, Things'
   and repos in one place. What is open is ticked; picking it again closes it.
 - **A cleaner worker header**: floor · model · effort · branch on one line, with a button that copies the branch.
 - **Stats in the main pane**, opened from the chart icon in the header, instead of squeezed into the sidebar.
+- **Extensions' tabs** (the Artifacts gallery's) open from a grid icon beside it; with several, it opens a menu of them.
 - **GitHub-style diffs** in Changes, a graphite terminal, light and dark that follow macOS, and drag-to-reorder with
   a lifted card.
 
@@ -58,7 +59,7 @@ tower's own page, so its fixes and features arrive with each sync.
 
 ## Which version you run
 
-The sidebar's foot shows it: **Lobby 0.3.2** at the end of "Config and renderers". Its tip says the commit it was
+The sidebar's foot shows it: **Lobby 0.3.3** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
 it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
 [CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).

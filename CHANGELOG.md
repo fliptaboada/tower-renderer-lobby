@@ -6,6 +6,13 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-11-20
+
+### Fixed
+- An extension's sidebar tab, such as the Artifacts gallery's, shows again: as a grid icon in the brand, next to
+  Stats, lit while its view is open, and pressed again to close it. It used to land, hidden, in the Stats pane's
+  header. With more than one such tab, the icon opens a menu of them.
+
 ## [0.3.2] - 2026-11-19
 
 ### Fixed
@@ -84,7 +91,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.2.4...v0.3.0
