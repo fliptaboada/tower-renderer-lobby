@@ -42,10 +42,18 @@ mkdir -p "$here/out/$modules"
 cp -R "$page/." "$here/out/$modules/"
 mv "$here/out/$modules/index.html" "$here/out/"
 [ -f "$here/out/$modules/renderer.json" ] && mv "$here/out/$modules/renderer.json" "$here/out/"
-cp "$here/lobby.css" "$here/lobby.js" "$here/out/"
+cp "$here/lobby.js" "$here/out/"
+# lobby.css puts each rule in the cascade layer of what it restyles (the elements in tower.design, the page's parts in
+# tower.page, a view's insides in tower.views), as a tower from 2.17 orders its page's CSS. An older page puts its CSS
+# in no layer, which would outweigh every layered rule of Lobby's, so for it the layers' lines come out.
+if grep -q '@layer tower\.' "$page/index.html"; then
+  cp "$here/lobby.css" "$here/out/"
+else
+  perl -ne 'print unless /^\@layer tower\.\w+ \{$/ || /^\} \/\* tower\.\w+ \*\/$/' "$here/lobby.css" > "$here/out/lobby.css"
+fi
 # Each link carries its file's hash, so a reload after a sync loads the new files: WebKit (Tower.app) keeps a module
 # it has loaded across reloads while its URL is the same.
-css=$(shasum "$here/lobby.css" | cut -c1-10)
+css=$(shasum "$here/out/lobby.css" | cut -c1-10)
 js=$(shasum "$here/lobby.js" | cut -c1-10)
 # What runs, for lobby.js to show: VERSION's number, the commit it was built from (`+` when the clone has changes of
 # its own), and the day of the build.
