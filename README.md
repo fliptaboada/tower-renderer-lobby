@@ -59,7 +59,7 @@ tower's own page, so its fixes and features arrive with each sync.
 
 ## Which version you run
 
-The sidebar's foot shows it: **Lobby 0.3.3** at the end of "Config and renderers". Its tip says the commit it was
+The sidebar's foot shows it: **Lobby 0.3.4** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
 it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
 [CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).
@@ -72,7 +72,9 @@ Remove the `extensions.lobby` entry (and `renderers.lobby`, and `"renderer": "lo
 
 Lobby is two files over a fresh copy of the stock page, and touches nothing in the tower itself:
 
-- `lobby.css` restyles the page with the design's own tokens.
+- `lobby.css` restyles the page with the design's own tokens, each rule in the cascade layer of what it restyles
+  (the elements, the page, or a view's insides), as a tower from v2.17.0 orders its page's CSS. For an older page,
+  whose CSS sits in no layer, `sync.sh` copies it without the layers' lines.
 - `lobby.js` regroups the sidebar's frame before the page first draws, and adds the inbox, the floor menus and the
   header line. It reads the board and the tower's library, and keeps one thing: the viewer's choice for the inbox.
 - `sync.sh` puts the page's modules in a folder named after their contents (`out/p-<hash>/`), so after a tower update
@@ -81,7 +83,7 @@ Lobby is two files over a fresh copy of the stock page, and touches nothing in t
 
 It builds on the page's element ids and classes, which are not a contract between tower versions. If a tower update
 moves them, `sync.sh` fails loudly when it can't add its two lines; anything subtler shows as a part of the page that
-looks off. Last checked with the tower at v2.14.0-12-g0dca0558 (API 2.20).
+looks off. Last checked with the tower at v2.17.0 (API 2.31).
 
 ## Recording the demo
 

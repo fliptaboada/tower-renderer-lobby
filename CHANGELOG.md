@@ -6,6 +6,13 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-11-24
+
+### Fixed
+- On the tower from v2.17.0 (API 2.31), which puts its page's CSS in cascade layers: a floor's name sits on the
+  sidebar again instead of a white box, each worker's new ⋯ is a quiet glyph rather than a framed button, and the
+  status words on the workers' cards keep their colours. Older towers get the same Lobby as before.
+
 ## [0.3.3] - 2026-11-20
 
 ### Fixed
