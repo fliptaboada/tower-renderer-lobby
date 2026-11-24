@@ -4,8 +4,16 @@
 
    Tokens first: every block below mirrors a block of /design.css, same selector, so each scheme and contrast keeps
    its own values. Attention keeps its meaning (needs red, working amber, ready green, quiet grey); only the hues move
-   to the system's. --enamel stays the core's: terminals take their background from /lib/design.js, not from CSS. */
+   to the system's. --enamel stays the core's: terminals take their background from /lib/design.js, not from CSS.
 
+   Layers: a tower from 2.17 puts its page's CSS in cascade layers, where a later layer outweighs an earlier one
+   whatever the selectors weigh, and CSS in none outweighs them all. So each rule here sits in the layer of what it
+   restyles: the elements (button, kbd, dialog) in tower.design under the shared components' classes, the page's parts
+   and Lobby's own in tower.page after the page's sheet, a view's insides in tower.views before the view's own <style>.
+   Within its layer a rule wins by weight and order, as all of them did before layers. Each layer opens on a line of
+   its own and closes on one that names it in a comment, because sync.sh takes those lines out for an older page. */
+
+@layer tower.page {
 :root {
   --ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Atkinson Hyperlegible', sans-serif;
   --display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Overpass', sans-serif;
@@ -152,6 +160,8 @@ body { background: var(--wall); letter-spacing: -.003em; }
 dialog h2 { font: 700 var(--fs-xl)/1.2 var(--display); text-transform: none; letter-spacing: -.01em; }
 .sign .name { font: 600 var(--fs-m)/1.35 var(--display); text-transform: none; letter-spacing: 0; }
 .sess .call, .away .call, .past .call { font-family: var(--ui); font-weight: 600; letter-spacing: 0; }
+} /* tower.page */
+@layer tower.design {
 button { font-weight: 500; }
 kbd { font-weight: 500; background: var(--panel-2); color: var(--muted); box-shadow: inset 0 0 0 .5px var(--line-strong); }
 
@@ -159,6 +169,8 @@ kbd { font-weight: 500; background: var(--panel-2); color: var(--muted); box-sha
 button { background: var(--panel); border-color: var(--line); }
 button:hover { border-color: var(--line-strong); }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-offered); }
+} /* tower.design */
+@layer tower.page {
 .icon-btn:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); border-color: transparent; }
 :is(.pane-tab.on, .tab.open) { border-color: var(--accent); }
 
@@ -360,10 +372,14 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .side .extensions-open.broken, .side .extensions-open.broken b { color: var(--c-text); }
 .extensions-pop .extension-row { border-radius: var(--radius-s); }
 .extensions-pop .extension-row:hover, .extensions-pop .extension-row:focus-visible { background: color-mix(in oklab, var(--ink) 7%, transparent); }
+} /* tower.page */
 
+@layer tower.design {
 /* Sheets and the palette: Raycast's floating panel. */
 dialog { border: 0; border-radius: var(--radius-l); box-shadow: var(--shadow-pop); }
 dialog::backdrop { backdrop-filter: blur(2px); }
+} /* tower.design */
+@layer tower.page {
 dialog.palette { margin-top: 16vh; border-radius: 14px; }
 #palette-input { font-size: var(--fs-2xl); padding: var(--sp-xl) var(--sp-xl); }
 .pal-item { padding: var(--sp-m) var(--sp-m); border-radius: var(--radius); }
@@ -374,7 +390,9 @@ dialog.palette { margin-top: 16vh; border-radius: 14px; }
 /* The shells' dock: tabs as segments under the card. */
 .tab, .tab-add { background: transparent; box-shadow: none; }
 .tab.open { background: var(--panel-2); }
+} /* tower.page */
 
+@layer tower.views {
 /* ── The main pane ──────────────────────────────────────────────────────────────────────────────────────────────
    Views style themselves under :where([data-view]) from <style> elements added after this sheet, so these rules
    name [data-view] to outweigh them. A view's head is the card's toolbar, not a card inside the card: no frame, a
@@ -416,15 +434,21 @@ dialog.palette { margin-top: 16vh; border-radius: 14px; }
 .main [data-view] .pane-tab { min-height: 24px; padding: 0 var(--sp-m); border: 0; border-radius: var(--radius-s); background: transparent; color: var(--muted); font-weight: 500; box-shadow: none; }
 .main [data-view] .pane-tab:hover { color: var(--ink); background: color-mix(in oklab, var(--ink) 6%, transparent); }
 .main [data-view] .pane-tab.on { color: var(--ink); background: color-mix(in oklab, var(--ink) 9%, transparent); box-shadow: none; }
+} /* tower.views */
 
+@layer tower.page {
 /* The terminal: a neutral graphite in place of the core's green-black, in both schemes. The DOM renderer paints its
    background inline, hence !important there; the ANSI colours are the core's and read on any dark ground. */
 :root, :root[data-scheme] { --enamel: #1e1e21; --enamel-2: #2a2a2e; }
 .main .screen, .shell-pane { background: var(--enamel); }
+} /* tower.page */
+@layer tower.views {
 .xterm, .xterm .xterm-scrollable-element, .xterm .xterm-viewport, .xterm .xterm-screen, .xterm .xterm-rows { background-color: var(--enamel) !important; }
 
 /* The rest of the capitals: the skyline's greeting, the settings' and the new worker's headings. */
 .main [data-view] .hello .big { font: 700 var(--fs-3xl)/1.1 var(--display); letter-spacing: -.015em; text-transform: none; }
+} /* tower.views */
+@layer tower.page {
 .settings h2, .spawn-form h2 { font: 700 var(--fs-m)/1.2 var(--display); letter-spacing: 0; text-transform: none; }
 
 /* ── Popovers, sheets and the dock ──────────────────────────────────────────────────────────────────────────────── */
@@ -460,10 +484,14 @@ dialog.palette { margin-top: 16vh; border-radius: 14px; }
 .dock .tab-add:hover { background: color-mix(in oklab, var(--ink) 6%, transparent); }
 .dock .tip { color: var(--faint); font-size: var(--fs-xs); }
 .dock .tip .tip-body b { font-weight: 500; color: var(--muted); }
+} /* tower.page */
+@layer tower.views {
 .xterm .xterm-viewport { scrollbar-color: #ffffff33 transparent; }
 .xterm .xterm-scrollable-element > .scrollbar > .slider { background: #ffffff33 !important; }
 .xterm .xterm-scrollable-element > .scrollbar { background: transparent !important; }
+} /* tower.views */
 
+@layer tower.page {
 /* Stats: its tiles as cards on the window, like the workers; its choices as segmented controls. Its sheet loads
    after this one, hence .side before each rule. */
 .main .stats-panel .tile { background: var(--panel); border: 0; border-radius: var(--radius); box-shadow: var(--card-shadow); }
@@ -489,10 +517,14 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 
 /* A worker's branch lives in its header (lobby.js adds a copy button after it), not in its sidebar card. */
 :is(.floors, .lobby-ghost) .sess .branch { display: none; }
+} /* tower.page */
+@layer tower.views {
 .main [data-view="tower/card"] .where-part .copy-branch { min-width: 20px; min-height: 20px; margin-left: var(--sp-2xs); vertical-align: middle; color: var(--faint); }
 .main [data-view="tower/card"] .where-part .copy-branch:hover { color: var(--ink); }
 .main [data-view="tower/card"] .where-part .copy-branch .icon { width: 13px; height: 13px; }
+} /* tower.views */
 
+@layer tower.page {
 /* A folded floor: its counts hold the right edge; its + takes their place while the name is pointed at, rather than
    keeping an empty slot beside them. */
 .floors .floor.folded > .sign > [data-spawn], .floors .floor.folded > .sign > tower-menu-area > [data-spawn] { position: absolute; top: 50%; right: 0; translate: 0 -50%; }
@@ -587,9 +619,11 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 .floors .sess .act.resumes > button:not(:first-child):hover { background: color-mix(in oklab, var(--ink) 8%, transparent); color: var(--ink); }
 .floors .sess:not(.sel):is(:hover, :focus-within):has(.act.resumes) > .top :is(.st, .ago) { visibility: hidden; }
 .floors .sess.gone:is(:hover, :focus-within) { background: var(--card-hover); opacity: 1; }
+} /* tower.page */
 
 /* ── The worker view ───────────────────────────────────────────────────────────────────────────────────────────────── */
 
+@layer tower.views {
 /* Its toolbar's small things: ⋯ a square like the other icons, dismiss a quiet word, the meta (model, effort) lobby.js
    adds after the floor and branch a whisper. */
 .main [data-view="tower/card"] .bar-actions .region-more { min-width: 28px; min-height: 26px; padding: 0; justify-content: center; border: 0; background: transparent; color: var(--muted); }
@@ -651,12 +685,16 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 .main [data-view="tower/card"] .bar-details dd { font: var(--fs-s)/1.45 var(--ui); }
 .main [data-view="tower/card"] .ask .what { display: block; }
 .main [data-view="tower/card"] .ask::before { margin-left: 4px; }
+} /* tower.views */
+@layer tower.page {
 /* The inbox's head in the colour of its loudest wait (needs you red, done green), its rows' states beside their ages. */
 .inbox-head .inbox-title { color: var(--ink); }
 .inbox-head .inbox-n { background: var(--c); color: var(--on); }
 .inbox-st { flex: none; margin-left: auto; color: var(--c-text); font: 600 var(--fs-xs)/1 var(--ui); }
 .inbox-st + .inbox-ago { margin-left: 0; color: var(--faint); font-weight: 500; }
+} /* tower.page */
 
+@layer tower.views {
 /* The worker's header line lobby.js draws from the board, in the core's line's place: floor · model · effort ·
    branch with its copy button beside it · who hired it, on one line that ellipsizes. */
 .main [data-view="tower/card"] .where-part:has(.lobby-where) > .where { display: none; }
@@ -666,7 +704,9 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 .main [data-view="tower/card"] .lobby-where .lobby-branch .icon { width: 11px; height: 11px; margin-right: 2px; vertical-align: -1px; }
 .main [data-view="tower/card"] .lobby-where .copy-branch { margin-left: 0; }
 .main [data-view="tower/card"] .lobby-where > .lobby-pair { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+} /* tower.views */
 
+@layer tower.page {
 /* ── Stats, in the main pane ─────────────────────────────────────────────────────────────────────────────────────────
    Opened from the chart icon in the header, over whatever the pane shows, closed by its × (or by opening a worker).
    The sidebar keeps its floors. The page still names this state `on-stats` on the sidebar, which is how it's read. */
@@ -682,10 +722,14 @@ body:has(.side.on-stats) .main .stats-side { display: block; flex: 1; min-height
 .brand :is(.stats-open, .views-open)[aria-pressed="true"] { color: var(--accent); background: var(--accent-wash); }
 .brand .board-sign { display: flex; }
 .brand .board-sign:empty { display: none; }
+} /* tower.page */
+@layer tower.views {
 /* A tab that ends in an icon button (a file a worker showed: open out, folder, editor, ×) ends at that button, as the
    page draws it: the button's own room is the tab's right edge. */
 .main [data-view] .pane-tab:has(> .icon-btn:last-child) { padding-right: 2px; }
+} /* tower.views */
 
+@layer tower.page {
 /* ── Code and diffs: a GitHub-like theme ──────────────────────────────────────────────────────────────────────────
    The core's diff and syntax colours were tuned for its warm paper. On Lobby's greys they read as olive and brick;
    these are GitHub's: soft green and red rows, a stronger tint on the words a line changed, its syntax hues. Every
@@ -716,3 +760,4 @@ body:has(.side.on-stats) .main .stats-side { display: block; flex: 1; min-height
 :root[data-motion='reduce'] .lobby-ghost { rotate: none; scale: none; }
 body:has(.lobby-ghost), body:has(.lobby-ghost) * { cursor: grabbing !important; }
 .floor-menu .menu-badge { display: flex; flex-wrap: wrap; gap: var(--sp-xs); padding: var(--sp-2xs) var(--sp-m); }
+} /* tower.page */
