@@ -6,6 +6,14 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-11-25
+
+### Fixed
+- A worker's ⋯ is no longer hidden under Resume and Let go: while a card that can be resumed is pointed at, the ⋯ is
+  the floating toolbar's last button, past a hairline, so its menu is one click away again.
+- The ⋯ on a worker's card shows only while the card is pointed at or focused (or its menu is open), as a quiet glyph
+  that no longer makes the card's name row taller.
+
 ## [0.3.4] - 2026-11-24
 
 ### Fixed
@@ -98,7 +106,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...HEAD
+[0.3.5]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.1...v0.3.2

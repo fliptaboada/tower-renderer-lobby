@@ -619,7 +619,23 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 .floors .sess .act.resumes > button:not(:first-child):hover { background: color-mix(in oklab, var(--ink) 8%, transparent); color: var(--ink); }
 .floors .sess:not(.sel):is(:hover, :focus-within):has(.act.resumes) > .top :is(.st, .ago) { visibility: hidden; }
 .floors .sess.gone:is(:hover, :focus-within) { background: var(--card-hover); opacity: 1; }
+/* The card's ⋯, the page's menu button at the top row's end: a quiet glyph, shown while the card is pointed at, holds
+   focus or has its menu open. It takes no height, centred on the row, so the row is as tall as it was without it.
+   While Resume and Let go float, the ⋯ is their last button: the toolbar steps in to the ⋯'s edge, leaves room at its
+   end past a hairline, and the ⋯ sits in that room above it, so the menu is never under the toolbar. */
+.floors .sess .top tower-menu-button { flex: none; display: flex; align-items: center; height: 0; }
+.floors .sess:has(.top tower-menu-button):not(.sel):is(:hover, :focus-within) .act.resumes { right: calc(var(--sp-m) - 2px); padding-right: calc(var(--control) + 7px); }
+.floors .sess:has(.top tower-menu-button) .act.resumes::after { content: ''; position: absolute; top: 6px; bottom: 6px; right: calc(var(--control) + 4px); width: 1px; background: var(--line); }
+.floors .sess:has(.top tower-menu-button):not(.sel):is(:hover, :focus-within):has(.act.resumes) .top tower-menu-button { position: absolute; top: calc(3px + 2px); right: var(--sp-m); height: auto; z-index: 3; }
 } /* tower.page */
+@layer tower.elements {
+/* The ⋯'s own button, which the page styles among its shared elements. */
+.floors .sess .top tower-menu-button button { display: grid; place-items: center; min-width: var(--control); min-height: var(--control); padding: 0; border: 0;
+  border-radius: 5px; background: transparent; color: var(--muted); font-weight: 700; box-shadow: none; opacity: 0; transition: opacity .12s ease-out; }
+.floors .sess:is(:hover, :focus-within) .top tower-menu-button button, .floors .sess .top tower-menu-button button[aria-expanded="true"] { opacity: 1; }
+.floors .sess .top tower-menu-button button:is(:hover, :focus-visible, [aria-expanded="true"]) { background: color-mix(in oklab, var(--ink) 8%, transparent); color: var(--ink); }
+@media (hover: none) { .floors .sess .top tower-menu-button button { opacity: 1; } }
+} /* tower.elements */
 
 /* ── The worker view ───────────────────────────────────────────────────────────────────────────────────────────────── */
 
