@@ -6,6 +6,8 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.3.6] - 2026-11-26
+
 ### Fixed
 - On the tower from v2.18.0, whose sidebar opens Stats and extensions' views from a row of entries above the floors,
   the page draws again: Lobby used to take that row out, and the page, which now fills it, stopped before drawing the
@@ -115,6 +117,7 @@ fixes or polishes what is there.
 - The MIT license.
 
 [Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...HEAD
+[0.3.6]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.2...v0.3.3

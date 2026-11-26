@@ -59,7 +59,7 @@ tower's own page, so its fixes and features arrive with each sync.
 
 ## Which version you run
 
-The sidebar's foot shows it: **Lobby 0.3.5** at the end of "Config and renderers". Its tip says the commit it was
+The sidebar's foot shows it: **Lobby 0.3.6** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
 it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
 [CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).
@@ -83,7 +83,7 @@ Lobby is two files over a fresh copy of the stock page, and touches nothing in t
 
 It builds on the page's element ids and classes, which are not a contract between tower versions. If a tower update
 moves them, `sync.sh` fails loudly when it can't add its two lines; anything subtler shows as a part of the page that
-looks off. Last checked with the tower at v2.17.0 (API 2.31).
+looks off. Last checked with the tower at v2.19.0 (API 2.41).
 
 ## Recording the demo
 
