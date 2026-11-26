@@ -12,23 +12,30 @@ import { esc, modelName } from '/lib/words.js'
 // The board's sign and a stats button go up into the brand; the tally and the limits share one glance row; the
 // Floors/Stats switch goes (stats opens from the brand and closes from its own pane); stats moves into the main pane;
 // the config path and the renderers fold under one disclosure.
+//
+// A tower from v2.18 has no switch: the row above the floors holds entries (Floors, Stats, the Learning center, an
+// extension's views), each opening its view in the main pane, Stats included, and the page fills the row by id. There
+// the row stays where it is, hidden by lobby.css; the brand's chart opens its Stats and the views button the rest.
 {
   const byId = (/** @type {string} */ id) => /** @type {HTMLElement} */ (document.getElementById(id))
   const make = (/** @type {string} */ html) => /** @type {HTMLElement} */ (document.createRange().createContextualFragment(html).firstElementChild)
-  byId('settings-open').before(byId('board-sign'), make(`<button class="icon-btn stats-open" data-side-view="stats" aria-label="stats" data-tip="stats: spend, work and waits, from the logs"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 13.5h11M4.5 11V8M8 11V4.5M11.5 11V6.5"/></svg></button>`))
+  const entries = !!byId('nav-entries')
+  byId('settings-open').before(byId('board-sign'), make(`<button class="icon-btn stats-open" ${entries ? 'data-nav-view="tower/stats"' : 'data-side-view="stats"'} aria-label="stats" data-tip="stats: spend, work and waits, from the logs"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 13.5h11M4.5 11V8M8 11V4.5M11.5 11V6.5"/></svg></button>`))
   const glance = make('<div class="glance"></div>')
   byId('tally').before(glance)
   glance.append(byId('tally'), byId('limits-bar'))
-  const switcher = /** @type {Element} */ (document.querySelector('.side-views'))
-  switcher.remove()
-  const pane = make(`<section class="stats-pane" aria-label="stats"><header class="stats-pane-head"><h2>Stats</h2><button class="icon-btn" data-side-view="floors" aria-label="close stats" data-tip="close stats">${ICON.close}</button></header></section>`)
-  pane.append(byId('stats'))
-  byId('view-host').before(pane)
-  // Extensions' sidebar tabs: an extension with no region for one (Artifacts) places its button after the page's last
-  // `[data-side-view]`. With the switch gone, that would be the stats pane's close button, hidden in the main pane; so
-  // the last one is an anchor in a hidden holder at the end of the page, the tabs land beside it, and the brand's views
-  // button (below) shows them.
-  document.body.append(make('<div class="lobby-side-tabs" hidden><span class="lobby-side-anchor" data-side-view="floors"></span></div>'))
+  if (!entries) {
+    const switcher = /** @type {Element} */ (document.querySelector('.side-views'))
+    switcher.remove()
+    const pane = make(`<section class="stats-pane" aria-label="stats"><header class="stats-pane-head"><h2>Stats</h2><button class="icon-btn" data-side-view="floors" aria-label="close stats" data-tip="close stats">${ICON.close}</button></header></section>`)
+    pane.append(byId('stats'))
+    byId('view-host').before(pane)
+    // Extensions' sidebar tabs: an extension with no region for one (Artifacts) places its button after the page's last
+    // `[data-side-view]`. With the switch gone, that would be the stats pane's close button, hidden in the main pane; so
+    // the last one is an anchor in a hidden holder at the end of the page, the tabs land beside it, and the brand's views
+    // button (below) shows them.
+    document.body.append(make('<div class="lobby-side-tabs" hidden><span class="lobby-side-anchor" data-side-view="floors"></span></div>'))
+  }
   byId('settings-open').before(make(`<button type="button" class="icon-btn views-open" hidden aria-label="views"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/></svg></button>`))
   const more = make('<details class="side-more"><summary>Config and renderers</summary></details>')
   byId('side-foot').before(more)
@@ -627,13 +634,16 @@ void readDismissed()
 // The extensions' tabs, from the brand's grid icon. With one tab (Artifacts today) the icon is that tab: it opens its
 // view, lit while it is open, and a second press closes it. With more, it opens a menu of them, the open one ticked,
 // which closes from its own item as a floor's menu does. The tabs themselves stay hidden beside the anchor; the page's
-// extensions mark theirs `aria-current` while their view is open, and a press here is a press on theirs.
-const sideTabs = /** @type {HTMLElement} */ (document.querySelector('.lobby-side-tabs'))
+// extensions mark theirs `aria-current` while their view is open, and a press here is a press on theirs. On a tower
+// from v2.18 the tabs are the hidden row's entries, all but Floors and Stats, marked `aria-current` the same way.
+const navEntries = document.getElementById('nav-entries')
+const sideTabs = /** @type {HTMLElement} */ (navEntries ?? document.querySelector('.lobby-side-tabs'))
 const viewsOpen = /** @type {HTMLButtonElement} */ (document.querySelector('.brand .views-open'))
-const extTabs = () => /** @type {HTMLElement[]} */ ([...sideTabs.children].filter((t) => t.matches('button, a')))
+const statsOpen = /** @type {HTMLButtonElement} */ (document.querySelector('.brand .stats-open'))
+const extTabs = () => /** @type {HTMLElement[]} */ ([...sideTabs.children].filter((t) => t.matches('button, a') && !t.matches('[data-nav-home], [data-nav-view="tower/stats"]')))
   .sort((a, b) => (a.textContent ?? '').localeCompare(b.textContent ?? ''))
 const tabName = (/** @type {HTMLElement} */ t) => (t.textContent ?? '').trim() || t.getAttribute('aria-label') || 'view'
-const tabOn = (/** @type {HTMLElement} */ t) => t.getAttribute('aria-current') === 'true'
+const tabOn = (/** @type {HTMLElement} */ t) => (t.getAttribute('aria-current') ?? 'false') !== 'false'
 const closeView = () => /** @type {HTMLElement | null} */ (document.querySelector('#view-host .view-root:not(.kept) [data-home]'))?.click()
 const drawViews = () => {
   const tabs = extTabs()
@@ -646,7 +656,14 @@ const drawViews = () => {
   if (viewsOpen.dataset.tip !== want.tip) viewsOpen.dataset.tip = want.tip
   if (viewsOpen.getAttribute('aria-pressed') !== want.pressed) viewsOpen.setAttribute('aria-pressed', want.pressed)
   if (viewsOpen.getAttribute('aria-haspopup') !== want.popup) want.popup ? viewsOpen.setAttribute('aria-haspopup', want.popup) : viewsOpen.removeAttribute('aria-haspopup')
+  // The chart, lit while the row's Stats is the open view.
+  const stats = navEntries?.querySelector('[data-nav-view="tower/stats"]')
+  const statsOn = String(!!stats && tabOn(/** @type {HTMLElement} */ (stats)))
+  if (navEntries && statsOpen.getAttribute('aria-pressed') !== statsOn) statsOpen.setAttribute('aria-pressed', statsOn)
 }
+// A second press on the lit chart closes Stats, before the page would open them again. (An older page lights it
+// itself, and closes its Stats from their pane.)
+statsOpen.addEventListener('click', (e) => navEntries && statsOpen.getAttribute('aria-pressed') === 'true' && (e.stopPropagation(), closeView()))
 new MutationObserver(drawViews).observe(sideTabs, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-current', 'title'], characterData: true })
 addEventListener('hashchange', () => requestAnimationFrame(drawViews))
 drawViews()

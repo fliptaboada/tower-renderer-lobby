@@ -6,6 +6,14 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+### Fixed
+- On the tower from v2.18.0, whose sidebar opens Stats and extensions' views from a row of entries above the floors,
+  the page draws again: Lobby used to take that row out, and the page, which now fills it, stopped before drawing the
+  floors. The row stays, hidden; the brand's chart opens the tower's Stats in the main pane, lit while they show, and
+  a second press closes them; the grid icon opens the row's other entries, such as the Learning center.
+- The tower's own "Waiting on you" section, new in v2.18.0, gives way to Lobby's inbox while the inbox shows, so the
+  waits aren't listed twice. Older towers get the same Lobby as before.
+
 ## [0.3.5] - 2026-11-25
 
 ### Fixed

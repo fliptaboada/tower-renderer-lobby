@@ -738,6 +738,11 @@ body:has(.side.on-stats) .main .stats-side { display: block; flex: 1; min-height
 .brand :is(.stats-open, .views-open)[aria-pressed="true"] { color: var(--accent); background: var(--accent-wash); }
 .brand .board-sign { display: flex; }
 .brand .board-sign:empty { display: none; }
+/* A tower from v2.18: its row of entries over the floors (Floors, Stats and more, each opening the main pane) is kept
+   for the brand's chart and views buttons, which open what it holds (lobby.js), and its own Waiting on you section
+   gives way to the inbox while the inbox shows. */
+.side-views:has(> #nav) { display: none; }
+.side.has-inbox .side-section[data-section="tower/waiting"] { display: none; }
 } /* tower.page */
 @layer tower.views {
 /* A tab that ends in an icon button (a file a worker showed: open out, folder, editor, ×) ends at that button, as the
