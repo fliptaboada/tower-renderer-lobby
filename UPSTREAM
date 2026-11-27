@@ -1,0 +1,6 @@
+# The tower's page in page/: RegiByte/the-tower's renderers/page at this commit, unchanged, the one Lobby was last
+# checked with. sync.sh builds Lobby from it on a tower whose API has the same major and this minor or newer; the
+# nightly check moves it forward in a pull request once a newer upstream passes.
+commit=5446bf70a2db4a0bda2a755fba11dd9d6e9f2206
+tag=v2.19.0
+api=2.41
