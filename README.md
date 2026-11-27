@@ -25,7 +25,8 @@ extensions: only the page you look at changes. Inspired by Arc's window, Things'
 
 ## Install
 
-Lobby needs a tower that is set up and running, and works from any folder outside the tower's checkout.
+Lobby needs a tower at API 2.41 or newer within 2.x (v2.19.0 and later), and works from any folder outside the
+tower's checkout.
 
 ```sh
 git clone https://github.com/fliptaboada/tower-renderer-lobby.git
@@ -33,8 +34,8 @@ cd tower-renderer-lobby
 ./sync.sh
 ```
 
-`sync.sh` asks your running tower where its page is, copies it into `out/` and adds Lobby to it. Lobby is an
-extension (`extension.json`, for a tower from 2.13): declare the clone in `~/.tower/config.json`, with its absolute
+`sync.sh` copies the tower's page that Lobby ships in `page/` into `out/` and adds Lobby to it. Lobby is an
+extension (`extension.json`): declare the clone in `~/.tower/config.json`, with its absolute
 path, and the tower serves `out/` from it in place:
 
 ```json
@@ -47,19 +48,23 @@ update, below). To set the inbox for every browser until a viewer picks in Setti
 
 Check the config with `tower config check`, and open `http://127.0.0.1:<your tower's port>/r/lobby/`. To make it the
 page `/` opens (and Tower.app shows), add `"renderer": "lobby"` too. If the extension doesn't show up, `tower
-extensions` says why.
-
-If no tower is running, point `sync.sh` at your tower's checkout instead: `./sync.sh ~/code/the-tower`.
+extensions` says why: on a tower older than 2.41 it asks for `tower update`.
 
 ## Update
 
-After `tower update`, or a `git pull` here, run `./sync.sh` again and reload the page (`tower extensions restart lobby`
-too, when `extension.json` changed). Lobby sits on top of your
-tower's own page, so its fixes and features arrive with each sync.
+A `tower update` leaves Lobby as it is: nothing to run. After a `git pull` here, run `./sync.sh` again and reload the
+page (`tower extensions restart lobby` too, when `extension.json` changed).
+
+Lobby runs the same page for everyone, whatever tower they updated to: the one in `page/`, the tower's own page at
+the upstream release Lobby was last checked with (`UPSTREAM` names it). The tower keeps a page working on any newer
+tower of the same major, and `extension.json` requires that page's API, so the tower refuses Lobby, saying why,
+rather than serve it where it could break: on an older tower, or a new major. Each night a check runs Lobby on the
+newest upstream tower and, when it passes, opens a pull request that moves `page/` forward; upstream's newest page
+changes reach Lobby with that release.
 
 ## Which version you run
 
-The sidebar's foot shows it: **Lobby 0.3.7** at the end of "Config and renderers". Its tip says the commit it was
+The sidebar's foot shows it: **Lobby 0.4.0** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
 it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
 [CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).
@@ -70,20 +75,21 @@ Remove the `extensions.lobby` entry (and `renderers.lobby`, and `"renderer": "lo
 
 ## How it works
 
-Lobby is two files over a fresh copy of the stock page, and touches nothing in the tower itself:
+Lobby is two files over a copy of the stock page, and touches nothing in the tower itself:
 
 - `lobby.css` restyles the page with the design's own tokens, each rule in the cascade layer of what it restyles
   (the elements, the page, or a view's insides), as a tower from v2.17.0 orders its page's CSS. For an older page,
   whose CSS sits in no layer, `sync.sh` copies it without the layers' lines.
 - `lobby.js` regroups the sidebar's frame before the page first draws, and adds the inbox, the floor menus and the
   header line. It reads the board and the tower's library, and keeps one thing: the viewer's choice for the inbox.
-- `sync.sh` puts the page's modules in a folder named after their contents (`out/p-<hash>/`), so after a tower update
-  Tower.app loads the new page instead of the copy it kept, and makes the only edits to the copy, in `index.html`: a
+- `page/` is upstream's `renderers/page` at the commit in `UPSTREAM`, unchanged, under its MIT license.
+- `sync.sh` puts the page's modules in a folder named after their contents (`out/p-<hash>/`), so after a new page
+  Tower.app loads it instead of the copy it kept, and makes the only edits to the copy, in `index.html`: a
   line that links `lobby.css`, one that loads `lobby.js`, and `page.js` pointed into that folder.
 
-It builds on the page's element ids and classes, which are not a contract between tower versions. If a tower update
-moves them, `sync.sh` fails loudly when it can't add its two lines; anything subtler shows as a part of the page that
-looks off. Last checked with the tower at v2.19.0 (API 2.41).
+It builds on the page's element ids and classes, which are not a contract between tower versions: that is why Lobby
+carries the page it was checked with, instead of copying each tower's own. To check Lobby on another page, give
+`sync.sh` its checkout: `./sync.sh ~/code/the-tower`. Last checked with the tower at v2.19.0 (API 2.41).
 
 ## Recording the demo
 
@@ -94,6 +100,6 @@ with headless Chrome and ffmpeg. From a tower checkout:
 npm run sandbox -- up                                     # prints the sandbox's URL
 # add "extensions": { "lobby": { "path": "<this clone>" } } to the sandbox's config.json
 npm run -s sandbox -- run sh <this clone>/demo/populate.sh
-TOWER_URL=<the sandbox's URL> <this clone>/sync.sh
+<this clone>/sync.sh
 node <this clone>/demo/record.mjs <the sandbox's URL> /tmp/lobby/lobby-demo.mp4
 ```

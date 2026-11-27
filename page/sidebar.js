@@ -1,0 +1,701 @@
+import { boardSubject, callOf, can, cardSubject, crewFoldsOf, crewTreeIn, dutyOrderIn, floorSubject, goneHome, goneHomeLine, hiresBy, orderMoving, projectOfKey, workerKeyOf, workersIn } from '/lib/board.js'
+import { addedTidyOf, ATTENTION_NAME, branchLine, carriedLine, editedRows, extraUsageLine, gistLine, goneBases, heededAsks, heededWaits, heldActions, keptBranchLines, lampOf, mainUnreadHtml, LIMITS_STALE_MS, limitsFromTitle, loudest, paceLine, pairLineOf, pastCount, renderersHtml, resetLine, risky, satellitesOf, shelfKind, shelfSource, statusName, statusTitle, statusWord, strandedOf, SUBAGENT_FADE_MS, subagentTitle, tidyLine, tidyRowAsk, tidyRows, verbHint, verbLabel, WAITING_NAME, weekElapsed, WORKTREE_STATE_NAME, WORKTREE_VERB_NAME, worktreeBranch, worktreeRisk } from '/lib/cards.js'
+import { placeOnOpen } from '/lib/chrome.js'
+import { subjectAreaHtml, subjectButtonHtml, subjectHtml } from '/lib/elements.js'
+import { keyshortcuts } from '/lib/keys.js'
+import { addedActions, badgesOf, exemptionsOf, isOnScreen, lineId, overflowOf, rankedBadges, rankedLines } from '/lib/layout.js'
+import { ICON, keyedTip, morphPanel, originIcon, SHELF_ICON, withIcons } from '/lib/view.js'
+import { domId } from '/lib/morph.js'
+import { base, esc, noun, plural, span } from '/lib/words.js'
+import { commandProbes, PROBE_ATTENTION, probeLine, probeTitle } from './clients.js'
+import { onDuty, lineOf, $, fillOf, told } from './kit.js'
+import { actionsHtml, asksHtml, badgeHtml, badgesHtml, drawCount, drawnActions, iconButtonsHtml, moreOf } from './added.js'
+
+/**
+ * @import { Attention, Board, Card, CommandLimits, Floor, FloorBranch, FloorWorktree, RateLimit, ShelfEntry, Subject, Unresumable } from '/lib/board.js'
+ * @import { DaemonVerb, EditedRow, Heed, TidyRow } from '/lib/cards.js'
+ * @import { Action, Added, Badge } from '/lib/extension.js'
+ * @import { Hold, LayoutEntry, Overflow, Region } from '/lib/layout.js'
+ * @import { Viewer } from '/lib/viewer.js'
+ */
+
+/** @typedef {{ hires: (c: Card) => Card[], fold: ReturnType<typeof crewFoldsOf>, hiresEverywhere: (c: Card) => Card[], everyone: Card[] }} Crews A floor's crews, indexed once. */
+
+/**
+ * What a worker's row draws beside its card: its callsign, whether it is the one selected and whether it calls the
+ * viewer, what extensions add to it (`by` on its callsign, `lines`, `badges`, `note`), its branch line (drawn on a
+ * worktree), its subagents and its verbs.
+ * @typedef {{ callsign: string, selected: boolean, calls: boolean, adds: { by: string, lines: string, badges: string, note: string }, branch: string, satellites: string, act: string }} RowParts
+ */
+
+/**
+ * A worker's row in the sidebar, from its card and the parts the sidebar reads around it: also what a theme's preview
+ * draws, from a sample card.
+ * @param {Card} c @param {RowParts} p
+ */
+export const workerRowHtml = (c, p) => {
+  const key = `card:${c.id}`
+  return `<div class="sess ${lampOf(c)} ${c.waiting ? 'waits' : ''} ${p.calls ? 'calls' : ''} ${p.selected ? 'sel' : ''} ${onDuty(c) ? '' : 'gone'}" data-id="${c.id}" data-hold="${c.id}">${subjectAreaHtml('row', key, `
+    <div class="top"><span class="lamp"></span><a class="call" href="#${c.id}"${p.selected ? ' aria-current="true"' : ''}${p.adds.by}>${p.callsign}</a><span class="state"><span class="st${c.stuck ? ' stuck' : ''}" data-tip="${esc(statusTitle(c))}">${statusWord(c)}${c.stuck || c.stranded ? `<span class="sr-only">: ${esc(statusTitle(c))}</span>` : ''}</span><span class="ago" translate="no" data-since="${c.enteredAt}"></span></span>${subjectButtonHtml('row', key, `${p.callsign}: menu`)}</div>
+    ${c.worktree ? `<div class="branch" data-tip="worktree ${esc(c.worktree.name)}: ${esc(c.cwd)}">${withIcons(esc(p.branch))}</div>` : ''}
+    ${p.adds.lines}
+    <div class="line">${lineOf(c)}</div>
+    ${p.adds.badges}
+    ${p.satellites}
+    ${p.act}
+    ${p.adds.note}`)}</div>`
+}
+
+/**
+ * A floor's plate in the sidebar: its sign (its number `n`, its name folding it, then `sign`, what the sign holds open or
+ * folded) over `body`, coloured by `style`. Also what a theme's preview draws, from a sample floor.
+ * @param {Floor} f @param {{ n: number, open: boolean, style: string, sign: string, body: string }} p
+ */
+export const floorPlateHtml = (f, { n, open, style, sign, body }) => `<section class="floor${open ? '' : ' folded'}" id="${esc(domId('floor', `floor:${f.id}`))}" style="${style}" data-hold="floor:${esc(f.id)}">
+    <div class="sign">${subjectHtml('sign', `floor:${f.id}`, `${f.name}: menu`, `<span class="fold" role="heading" aria-level="2"><button data-floor-fold="${esc(f.id)}" aria-expanded="${open}" data-tip="${esc(`${f.name}: ${open ? 'fold' : 'unfold'}`)}"><span class="num">${String(n).padStart(2, '0')}</span><span class="name">${esc(f.name)}</span>${ICON.caret}</button></span>${sign}`)}</div>
+    ${body}
+  </section>`
+
+/**
+ * @typedef {{
+ *   render: () => void,
+ *   selected: () => string | undefined,
+ *   callsign: (id: string) => string,
+ *   heldWhy: (verb: DaemonVerb) => string | undefined,
+ *   heldHtml: (verb: DaemonVerb, label: string, inner: string, cls?: string) => string,
+ *   letGoHtml: (c: Card, label: string) => string,
+ *   unresumableHtml: (why: Unresumable) => string,
+ *   board: () => Board,
+ *   pageNow: () => number,
+ *   floorOf: (project: string) => Floor | undefined,
+ *   paint: (projectId: string | undefined) => string,
+ *   viewer: () => Viewer,
+ *   keepViewer: <K extends keyof Viewer>(field: K, value: Viewer[K]) => void,
+ *   findCard: (id: string | undefined) => Card | undefined,
+ *   at: (id: string) => { kind: string, project: string, name: string } | undefined,
+ *   trayRowsHtml: (f: Floor) => string,
+ *   heed: () => Heed,
+ *   withKeys: (what: string, id: string) => string,
+ *   opensHtml: (subject: Subject) => string,
+ *   holdsOf: (region: string) => Hold[],
+ *   regionLayout: (region: string) => { region: Region | undefined, entry: LayoutEntry | undefined },
+ * }} SidebarDeps
+ */
+
+/**
+ * The sidebar: each floor under its sign, folded or open, with its directories, shelf, offers, workers by crew and
+ * trays of what it keeps; the counts and the limits above them, the rail it folds to, and the drawer it opens as on a
+ * narrow window.
+ * @param {SidebarDeps} deps
+ */
+export async function sidebar(deps) {
+  const { render, selected, callsign, heldWhy, heldHtml, letGoHtml, unresumableHtml, board, pageNow, floorOf, paint, viewer, keepViewer, findCard, at, trayRowsHtml, heed, withKeys, opensHtml, holdsOf, regionLayout } = deps
+  /** The web page of each project directory's origin remote. @type {Record<string, string>} */
+  let origins = {}
+
+  const UNFOLDED_KEY = 'floors.unfolded'
+  /** The sections a viewer unfolded under a floor's workers, by `<section>:<project>`, kept in `tower.store`. @type {Set<string>} */
+  const unfolded = new Set(/** @type {string[] | undefined} */ (await tower.store.get(UNFOLDED_KEY)) ?? [])
+
+  /** @param {string} key */
+  function toggleSection(key) {
+    if (!unfolded.delete(key)) unfolded.add(key)
+    tower.store.set(UNFOLDED_KEY, [...unfolded])
+    render()
+  }
+
+  /** Whether the viewer keeps region `id`'s buttons on screen (`LayoutEntry.onScreen`). @param {string} id */
+  const onScreen = (id) => isOnScreen(regionLayout(id).entry)
+
+  /** What region `id` draws of `actions` under its layout (`drawnActions`). @template {Added<Action>} A @param {string} id @param {A[]} actions */
+  const shownIn = (id, actions) => drawnActions(regionLayout(id).entry, actions)
+
+  /** @param {string} text */
+  const lineHtml = (text) => `<div class="adds-line" data-tip="${esc(text)}">${esc(text)}</div>`
+
+  /** A badge in words, for the list of those a row leaves out. @param {Added<Badge>} b */
+  const badgeWords = (b) => (b.hint ? `${b.label} (${b.hint})` : b.label)
+
+  /**
+   * What a worker's row draws of the lines and badges extensions add, in the `wrap` form: all of them, the lines less
+   * those the layout hides. `by` and `note` are empty: nothing is left out.
+   * @param {Card} c @param {LayoutEntry | undefined} entry
+   */
+  const rowWrapped = (c, entry) => ({
+    lines: rankedLines(board(), c.id, entry).map((l) => lineHtml(l.text)).join(''),
+    badges: badgesOf(board(), cardSubject(c)).length ? `<div class="badges">${badgesHtml(board(), cardSubject(c))}</div>` : '',
+    by: '',
+    note: '',
+  })
+
+  /**
+   * The same in the `count` form: the card's exemptions, then the first of its ranked lines and badges the budgets allow
+   * and the lines the layout pins, and a "+n" for the rest. The rest are in the "+n"'s tip and in the description the
+   * row's link names (`note`, `by`); the worker's head lists all of them once it is opened.
+   * @param {Card} c @param {LayoutEntry | undefined} entry
+   */
+  const rowCounted = (c, entry) => {
+    const counts = countsOf(c, entry)
+    return countedHtml(c, counts, [counts.lines, counts.badges])
+  }
+
+  /** A row's lines and badges as the budgets of `entry` draw them, the lines the layout pins among them. @param {Card} c @param {LayoutEntry | undefined} entry */
+  const countsOf = (c, entry) => {
+    const { lines: nLines, badges: nBadges } = /** @type {{ lines: number, badges: number }} */ (entry)
+    return {
+      lines: drawCount(rankedLines(board(), c.id, entry), nLines, { noun: 'line', say: (l) => l.text, pinned: (l) => !!entry?.pinned?.includes(lineId(l)) }),
+      badges: drawCount(rankedBadges(board(), cardSubject(c)), nBadges, { noun: 'badge', say: badgeWords, pinned: () => false }),
+    }
+  }
+
+  /**
+   * A row's drawn lines and badges, its exemptions first, and a "+n" for what `counted` leaves out.
+   * @param {Card} c @param {ReturnType<typeof countsOf>} counts @param {ReturnType<typeof countsOf>[keyof ReturnType<typeof countsOf>][]} counted
+   */
+  const countedHtml = (c, { lines, badges }, counted) => {
+    const more = moreOf(`more-${c.id}`, counted)
+    const drawn = [...exemptionsOf(board(), cardSubject(c)), ...badges.drawn]
+    return {
+      lines: lines.drawn.map((l) => lineHtml(l.text)).join(''),
+      badges: drawn.length || more.mark ? `<div class="badges counted">${drawn.map(badgeHtml).join('')}${more.mark}</div>` : '',
+      by: more.by,
+      note: more.note,
+    }
+  }
+
+  /**
+   * What a worker's row draws of the lines and badges extensions add in the menu only: its pinned lines, with no count
+   * of the others, which its ⋯ reaches; and its badges, which are information, as its form draws them: under `count`
+   * its budget and a "+n" of the badges alone, under `wrap` every one.
+   * @param {Card} c @param {LayoutEntry | undefined} entry @param {Overflow} form
+   */
+  const rowPinned = (c, entry, form) => {
+    if (form === 'count') {
+      const counts = countsOf(c, { ...entry, lines: 0 })
+      return countedHtml(c, counts, [counts.badges])
+    }
+    return { ...rowWrapped(c, entry), lines: rankedLines(board(), c.id, entry).filter((l) => entry?.pinned?.includes(lineId(l))).map((l) => lineHtml(l.text)).join('') }
+  }
+
+  /** A worker's row's lines and badges, in the form `card.row` is drawn in. @param {Card} c */
+  const rowAdds = (c) => {
+    const { region, entry } = regionLayout('card.row')
+    const form = overflowOf(/** @type {Region & { overflows: Overflow[] }} */ (region), entry)
+    if (!isOnScreen(entry)) return rowPinned(c, entry, form)
+    return form === 'count' ? rowCounted(c, entry) : rowWrapped(c, entry)
+  }
+
+  /** Whether the worker waits on this viewer, who hasn't dismissed it: its row and lamp are marked `calls`, which flash when the viewer asks (`waits` in `tower.prefs`). @param {Card} c */
+  const callsYou = (c) => c.waiting && heededWaits(board(), heed()).some((w) => w.id === c.id)
+
+  /** @param {Card} c @param {Card} [over] */
+  const sessionHtml = (c, over) =>
+    workerRowHtml(c, {
+      callsign: callsign(c.id),
+      selected: c.id === selected(),
+      calls: callsYou(c),
+      adds: rowAdds(c),
+      branch: [branchLine(c), pairLineOf(c.hiredBy && c.hiredBy.callsign === over?.callsign ? { ...c, hiredBy: undefined } : c, undefined)].filter(Boolean).join(' · '),
+      satellites: satellitesHtml(c),
+      act: can(c, 'resume') && onScreen('card.row-verbs') ? `<div class="act resumes">${heldWhy('resume') ? heldHtml('resume', verbLabel('card', 'resume').toLowerCase(), `${ICON.resume} ${verbLabel('card', 'resume').toLowerCase()}`) : `<button data-resume="${esc(JSON.stringify(callOf(c, 'resume')))}" data-tip="${esc(verbHint('card', 'resume', c))}">${ICON.resume} ${verbLabel('card', 'resume').toLowerCase()}</button>`}${letGoHtml(c, verbLabel('card', 'let-go').toLowerCase())}</div>` : c.unresumable ? `<div class="act">${unresumableHtml(c.unresumable)}</div>` : '',
+    })
+
+  /**
+   * The worker's subagents running now, a fork marked as its twin, and those that just ended fading out: the fade is an
+   * animation started `left` ms in, on a row drawn once (`data-owned`), so a redraw leaves it running where it stands.
+   * @param {Card} c
+   */
+  const satellitesHtml = (c) => {
+    const now = pageNow()
+    const drawn = satellitesOf(c, now)
+    if (!drawn.length) return ''
+    return `<div class="subs" style="--fade:${SUBAGENT_FADE_MS}ms">${drawn.map(({ run, left }) => `<div class="sub${run.type === 'fork' ? ' fork' : ''}${left === undefined ? '' : ` ended${run.ended === 'aborted' ? ' stopped' : ''}`}"${left === undefined ? '' : ` id="${esc(domId('sub', run.id))}" data-owned style="animation-delay:-${left}ms"`} data-tip="${esc(subagentTitle(run))}">
+    <span class="mark">${run.type === 'fork' ? ICON.branch : ''}</span><span class="what">${esc(run.description)}</span>${left === undefined ? `<span class="since" translate="no" data-since="${run.startedAt}"></span>` : ''}</div>`).join('')}</div>`
+  }
+
+  /** A worker and everyone under it. @param {Crews} crews @param {Card} c @param {Card} [over] @returns {string} */
+  const wholeCrewHtml = (crews, c, over) => {
+    const hires = crews.hires(c)
+    return sessionHtml(c, over) + (hires.length ? `<div class="crew tree">${hires.map((h) => wholeCrewHtml(crews, h, c)).join('')}</div>` : '')
+  }
+
+  /** A hire working on another floor, as a link to its card there. @param {Card} h */
+  const awayHtml = (h) => {
+    const f = /** @type {Floor} */ (floorOf(h.project))
+    return `<button class="away ${lampOf(h)}" style="${paint(f.id)}" data-away="${h.id}" data-tip="${esc(`${callsign(h.id)} works on ${f.name}: go to its card there`)}"><span class="lamp"></span><span class="call">${callsign(h.id)}</span><span class="on">on ${esc(f.name)}</span><span class="st">${statusWord(h)}</span></button>`
+  }
+
+  /**
+   * A worker, the crew under it not gone home, those gone home on one line that unfolds them (`crewFold`), and its hires
+   * on other floors still on duty there, linked.
+   * @param {Crews} crews @param {Card} c @param {Card} [over] @returns {string}
+   */
+  const crewHtml = (crews, c, over) => {
+    const { drawn, home, folded } = crews.fold(c)
+    const open = viewer().crewsUnfolded.includes(c.id)
+    const fold = home.length
+      ? `<button class="gone-home" data-crew-fold="${c.id}" data-hold="fold:${c.id}" aria-expanded="${open}">${ICON.caret} ${goneHomeLine(folded)}</button>${open ? home.map((h) => wholeCrewHtml(crews, h, c)).join('') : ''}`
+      : ''
+    const away = crews.hiresEverywhere(c).filter((h) => h.project !== c.project && !goneHome(crews.everyone, h))
+    const under = drawn.map((h) => crewHtml(crews, h, c)).join('') + away.map(awayHtml).join('') + fold
+    return sessionHtml(c, over) + (under ? `<div class="crew tree">${under}</div>` : '')
+  }
+
+  /**
+   * A crew the viewer drags by its head's grip: the floor it is on, its head's worker key, and where it would land, before
+   * the head keyed `before` or at the floor's end (`undefined`); `null` while that is where it stands.
+   * @type {{ floor: string, key: string, before: string | undefined | null } | undefined}
+   */
+  let dragging
+
+  /** A floor's crews' heads, keyed (`workerKeyOf`), in the viewer's order. @param {Floor} f */
+  const headKeysOf = (f) => crewTreeIn(f.cards, viewer().crewsOrder).filter(({ depth }) => depth === 0).map(({ card }) => workerKeyOf(card))
+
+  /** The heads of the floor `id` as the board has them now. @param {string} id */
+  const floorHeadKeys = (id) => headKeysOf(/** @type {Floor} */ (board().floors.find((g) => g.id === id)))
+
+  /**
+   * Where `key` lands moved before `before` among `keys`, the floor's heads now: at the floor's end when `before` no
+   * longer heads a crew there, and `null` when that is where it stands or `key` itself heads none.
+   * @param {string[]} keys @param {string} key @param {string | undefined} before
+   */
+  const landing = (keys, key, before) => {
+    const at = before !== undefined && keys.includes(before) ? before : undefined
+    return !keys.includes(key) || at === key || at === keys[keys.indexOf(key) + 1] ? null : at
+  }
+
+  /** @param {string} key @param {string | undefined} before */
+  function moveCrew(key, before) {
+    keepViewer('crewsOrder', orderMoving(board(), viewer().crewsOrder, key, before))
+    render()
+  }
+
+  /**
+   * The crew whose head's grip took the pointer `e` follows it until the button is let go, landing before the head whose
+   * crew's middle is below the pointer; Escape puts it back. The capture is on the sidebar, which outlives the redraws.
+   * @param {PointerEvent} e @param {HTMLElement} grip @param {HTMLElement} floors
+   */
+  function dragCrew(e, grip, floors) {
+    const floor = /** @type {string} */ (grip.dataset.floor)
+    const key = /** @type {string} */ (grip.dataset.crewDrag)
+    e.preventDefault()
+    floors.setPointerCapture(e.pointerId)
+    dragging = { floor, key, before: null }
+    render()
+    /** @param {PointerEvent} ev */
+    const move = (ev) => {
+      const groups = [...floors.querySelectorAll(`.crew-group[data-floor="${CSS.escape(floor)}"]`)]
+      const below = groups.find((g) => { const r = g.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2 })
+      const before = landing(floorHeadKeys(floor), key, /** @type {HTMLElement | undefined} */ (below)?.dataset.key)
+      if (dragging && before !== dragging.before) (dragging = { ...dragging, before }, render())
+    }
+    /** @param {boolean} drop */
+    const end = (drop) => {
+      const at = dragging
+      dragging = undefined
+      floors.removeEventListener('pointermove', move)
+      floors.removeEventListener('pointerup', up)
+      floors.removeEventListener('pointercancel', cancel)
+      removeEventListener('keydown', escape, true)
+      if (floors.hasPointerCapture(e.pointerId)) floors.releasePointerCapture(e.pointerId)
+      const before = drop && at && at.before !== null ? landing(floorHeadKeys(at.floor), at.key, at.before) : null
+      if (at && before !== null) moveCrew(at.key, before)
+      else render()
+    }
+    const up = () => end(true)
+    const cancel = () => end(false)
+    /** @param {KeyboardEvent} ev */
+    const escape = (ev) => { if (ev.key === 'Escape') (ev.preventDefault(), ev.stopPropagation(), end(false)) }
+    floors.addEventListener('pointermove', move)
+    floors.addEventListener('pointerup', up)
+    floors.addEventListener('pointercancel', cancel)
+    addEventListener('keydown', escape, true)
+  }
+
+  /** ↑ and ↓ on a crew's grip move the crew one place on its floor. @param {KeyboardEvent} e @param {HTMLElement} grip */
+  function stepCrew(e, grip) {
+    const by = { ArrowUp: -1, ArrowDown: 2 }[e.key]
+    if (!by || e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return
+    e.preventDefault()
+    const key = /** @type {string} */ (grip.dataset.crewDrag)
+    const keys = floorHeadKeys(/** @type {string} */ (grip.dataset.floor))
+    const at = keys.indexOf(key) + by
+    if (at < 0 || at > keys.length) return
+    moveCrew(key, keys[at])
+  }
+
+  /** @param {HTMLElement} floors */
+  function wireCrewGrips(floors) {
+    floors.addEventListener('pointerdown', (e) => {
+      const grip = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-crew-drag]'))
+      if (grip && e.button === 0 && !dragging) dragCrew(e, grip, floors)
+    })
+    floors.addEventListener('keydown', (e) => {
+      const grip = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-crew-drag]'))
+      if (grip) stepCrew(e, grip)
+    })
+  }
+
+  /**
+   * The crew dragged on floor `f` and where it lands as the board has the floor's heads now (`landing`): before the head
+   * keyed `before`, at the end (`undefined`), or nowhere new (`null`).
+   * @param {Floor} f @param {Card[]} heads @returns {{ key: string, before: string | undefined | null } | undefined}
+   */
+  const dragOn = (f, heads) => {
+    if (dragging?.floor !== f.id) return undefined
+    const keys = heads.map(workerKeyOf)
+    return { key: dragging.key, before: dragging.before === null ? null : landing(keys, dragging.key, dragging.before) }
+  }
+
+  /**
+   * A crew as its floor lists it, its head first: with a grip that puts it where the viewer wants it among `count` crews,
+   * drawn where it is dragged to and from (`drag`, `dragOn`).
+   * @param {Crews} crews @param {Floor} f @param {Card} c @param {number} count @param {ReturnType<typeof dragOn>} drag
+   */
+  const crewGroupHtml = (crews, f, c, count, drag) => {
+    const key = workerKeyOf(c)
+    const cls = [drag?.key === key ? 'dragged' : '', drag?.before === key ? 'drop-before' : ''].filter(Boolean).join(' ')
+    const grip = count > 1 ? `<button class="crew-grip" data-crew-drag="${esc(key)}" data-floor="${esc(f.id)}" aria-label="move ${esc(callsign(c.id))}'s crew: ↑ and ↓" data-tip="drag, or ↑ and ↓, to put this crew where you want it">${ICON.grip}</button>` : ''
+    return `<div class="crew-group${cls ? ` ${cls}` : ''}" id="${esc(domId('crew', key))}" data-floor="${esc(f.id)}" data-key="${esc(key)}">${grip}${crewHtml(crews, c)}</div>`
+  }
+
+  /** @param {string} id */
+  function toggleCrewFold(id) {
+    const unfolded = new Set(viewer().crewsUnfolded)
+    if (!unfolded.delete(id)) unfolded.add(id)
+    keepViewer('crewsUnfolded', [...unfolded].filter((h) => findCard(h)))
+    render()
+  }
+
+  /** A new shell's button for `dir`; on the selected worker's directory it names the chords of `shell-here` too. @param {Floor} f @param {string} dir @param {string} name */
+  const shellButtonHtml = (f, dir, name) => {
+    if (heldWhy('shell')) return heldHtml('shell', `new shell in ${name}`, ICON.shell, 'icon-btn')
+    if (!can(f, 'shell')) return ''
+    const tip = findCard(selected())?.cwd === dir ? keyedTip(board().keys, `new shell in ${dir} · the selected worker's shell; the same key hides it`, 'shell-here') : `data-tip="${esc(`new shell in ${dir}`)}"`
+    return `<button class="icon-btn" data-shell-project="${esc(f.id)}" data-shell-dir="${esc(dir)}" aria-label="new shell in ${esc(name)}" ${tip}>${ICON.shell}</button>`
+  }
+
+  /** @param {Floor} f @param {string} dir @param {boolean} hub */
+  const dirHtml = (f, dir, hub) =>
+    `<div class="dir" id="${esc(domId('dir', dir))}"><span class="dname" data-tip="${esc(dir)}">${hub ? ICON.hub : ICON.repo} ${esc(base(dir))}</span>
+    ${mainUnreadHtml(f, dir)}
+    ${onScreen('floor.dirs') ? dirButtonsHtml(f, dir) : ''}
+  </div>`
+
+  /** The page's own buttons beside a floor's directory (`floor.dirs`): a new shell, the editor, the repository on the web. @param {Floor} f @param {string} dir */
+  const dirButtonsHtml = (f, dir) => `${shellButtonHtml(f, dir, base(dir))}
+    ${can(f, 'editor') ? `<button class="icon-btn" data-open="${esc(dir)}" data-open-project="${esc(f.id)}" aria-label="open ${esc(base(dir))} in your editor" data-tip="open ${esc(dir)} in a new window of your editor">${ICON.editor}</button>` : ''}
+    ${origins[dir] ? `<a class="icon-btn" href="${esc(origins[dir])}" target="_blank" rel="noreferrer" aria-label="${esc(base(dir))} on the web" data-tip="${esc(origins[dir])}">${originIcon(origins[dir])}</a>` : ''}`
+
+  /**
+   * A verb on a worktree or kept branch, its call on the button.
+   * @param {string} name
+   * @param {(FloorWorktree | FloorBranch)['actions'][number]} action
+   */
+  const wtVerbHtml = (name, { verb, call }) => verb === 'discard'
+    ? `<button class="danger" data-discard="${esc(JSON.stringify(call))}" data-wt-name="${esc(name)}" data-tip="throw its work away: each tip is noted on its review thread first">${WORKTREE_VERB_NAME[verb]}</button>`
+    : `<button data-wt-call="${esc(JSON.stringify(call))}" data-wt-verb="${verb}" data-wt-name="${esc(name)}">${WORKTREE_VERB_NAME[verb]}</button>`
+
+  /** A button that opens what landing changed on a carried branch. @param {{ project: string, branch: string }} landing */
+  const landingButtonHtml = (landing) =>
+    `<button class="icon-btn" data-landing="${esc(JSON.stringify(landing))}" aria-label="what landing changed on ${esc(landing.branch)}" data-tip="what landing changed: git range-diff of each edited commit and its copy">${ICON.diff}</button>`
+
+  /** @param {Floor} f @param {FloorWorktree} w */
+  const worktreeHtml = (f, w) => {
+    const risk = worktreeRisk(w)
+    const where = w.repos[0].path
+    const title = [`${w.repos.map((r) => r.path).join('\n')}`, ...risk, ...goneBases(w.repos), w.state === 'carried' ? carriedLine(w.repos) : '', w.sessions.length ? `in use by ${w.sessions.join(', ')}` : ''].filter(Boolean).join('\n')
+    const workers = workersIn(f, w.name)
+    const resumable = workers.find((c) => can(c, 'resume'))
+    return `<div class="wt ${w.state}" id="${esc(domId('wt', w.name))}" data-tip="${esc(title)}"><span class="n"><b>${esc(w.name)}</b> ${ICON.branch} ${esc(worktreeBranch(w))}</span>
+    <span class="st">${WORKTREE_STATE_NAME[w.state]}</span>
+    ${w.state === 'carried' ? landingButtonHtml({ project: f.id, branch: worktreeBranch(w) }) : ''}
+    ${!resumable ? '' : heldWhy('resume') ? heldHtml('resume', `resume ${resumable.callsign}`, ICON.resume, 'icon-btn') : `<button class="icon-btn" data-resume="${esc(JSON.stringify(callOf(resumable, 'resume')))}" aria-label="resume ${resumable.callsign}" data-tip="resume ${resumable.callsign}, its last worker">${ICON.resume}</button>`}
+    ${w.actions.map((a) => wtVerbHtml(w.name, a)).join('')}
+    ${w.state === 'lost' ? '' : shellButtonHtml(f, where, w.name)}
+    ${w.state !== 'lost' && can(f, 'editor') ? `<button class="icon-btn" data-open="${esc(where)}" data-open-project="${esc(f.id)}" aria-label="open ${esc(w.name)} in your editor" data-tip="open ${esc(where)} in a new window of your editor">${ICON.editor}</button>` : ''}
+    ${workers.length ? `<span class="who-line">${workers.map((c) => `<a class="who" href="#${c.id}" data-tip="${esc(`${c.callsign} · ${statusName(c)}`)}">${c.callsign}</a> <span>${esc(statusName(c))}</span>`).join(' · ')}</span>` : ''}
+  </div>`
+  }
+
+  /** @param {Floor} f @param {FloorBranch} b */
+  const keptBranchHtml = (f, b) =>
+    `<div class="wt" data-tip="${esc(keptBranchLines(b).join('\n'))}">
+    <span class="n">${ICON.branch} ${esc(b.name)}</span><span class="st">${b.absorbed ? 'merged' : b.carried ? 'landed, edited' : 'kept'}</span>${b.carried ? landingButtonHtml({ project: f.id, branch: b.name }) : ''}${b.actions.map((a) => wtVerbHtml(b.name, a)).join('')}</div>`
+
+  /** The floor's worktrees and the branches the tower kept. @param {Floor} f */
+  const worktreesHtml = (f) => `<div class="worktrees">
+    <div class="drafts-head eyebrow">Worktrees</div>
+    ${f.worktrees.map((w) => worktreeHtml(f, w)).join('')}${f.branches.map((b) => keptBranchHtml(f, b)).join('')}</div>`
+
+  /**
+   * Everything the floor's Tidy would do, listed before the press, which applies the list as shown; then what landed
+   * edited, each removed by its own press only.
+   * @param {Floor} f
+   */
+  const tidyHtml = (f) => `<div class="worktrees">
+    ${can(f, 'tidy') ? `<div class="drafts-head eyebrow">${esc(tidyLine(f.tidy, addedTidyOf(board(), f)))}<button class="tidy-all" data-tidy="${f.id}" data-tip="do all of it, as listed">${verbLabel('floor', 'tidy')}</button></div>
+    ${tidyRows(f, Date.now(), addedTidyOf(board(), f)).map(tidyRowHtml).join('')}` : ''}
+    ${editedRows(f).length ? `<div class="drafts-head eyebrow" data-tip="landed as copies, some edited on the way: not in Tidy all, look first and remove each on its own">landed edited</div>${editedRows(f).map(editedRowHtml).join('')}` : ''}</div>`
+
+  /** A worktree or kept branch that landed edited: what landing changed, and a press that removes only it. @param {EditedRow} r */
+  const editedRowHtml = (r) => `<div class="wt" data-tip="${esc(r.title)}"><span class="n"><b>${withIcons(esc(r.what))}</b></span><span class="st">${esc(r.does)}</span>
+    ${landingButtonHtml(r.landing)}
+    <button class="icon-btn" data-wt-call="${esc(JSON.stringify(r.call))}" data-wt-verb="${r.call[0] === 'branch/delete' ? 'delete' : 'remove'}" data-wt-name="${esc(r.what.replace(/^⎇ /, ''))}" aria-label="${esc(`remove ${r.what}`)}" data-tip="remove only this, after looking at what landing changed">${ICON.tidy}</button></div>`
+
+  /** One thing Tidy would do, with a button that does only it. @param {TidyRow} r */
+  const tidyRowHtml = (r) => `<div class="wt" data-tip="${esc(r.title)}"><span class="n"><b>${withIcons(esc(r.what))}</b></span><span class="st">${esc(r.does)}</span>
+    <button class="icon-btn" data-tidy-call="${esc(JSON.stringify(r.call))}" data-tidy-ask="${esc(tidyRowAsk(r))}" aria-label="${esc(`${r.does}: ${r.what}`)}" data-tip="${esc(`only this: ${r.does}`)}">${ICON.tidy}</button></div>`
+
+  /** @param {Floor} f @param {ShelfEntry} entry @param {number} n */
+  const shelfEntryHtml = (f, entry, n) => shelfKind(entry) === 'link'
+    ? `<a href="${esc(/** @type {{ link: string }} */ (entry).link)}" target="_blank" rel="noreferrer" data-tip="${esc(`${entry.label}\n${/** @type {{ link: string }} */ (entry).link}`)}">${SHELF_ICON.link} ${esc(entry.label)}</a>`
+    : `<button class="${at('tower/shelf')?.project === f.id && at('tower/shelf')?.name === String(n) ? 'sel' : ''}" data-shelf="${f.id}" data-n="${n}" data-tip="${esc(`${entry.label}\n${shelfSource(entry)}`)}">${SHELF_ICON[shelfKind(entry)]} ${esc(entry.label)}</button>`
+
+  /** @param {Floor} f */
+  const shelfHtml = (f) => !f.shelf?.length || !onScreen('floor.shelf') ? '' : `<div class="shelf">${f.shelf.map((entry, n) => shelfEntryHtml(f, entry, n)).join('')}</div>`
+
+  /**
+   * What a floor keeps beside its workers, folded to one row of counts so the workers stay in sight: first its
+   * collections, each a view in the floor's trays (`floor.trays`), then the floor's own: worktrees and what Tidy would
+   * do unfold under the row, the archive opens in the main pane. Worktrees that would lose work say so folded. A
+   * collection's view draws its unfolded part in the row, laid out under every tray (`.tray-open`).
+   * @param {Floor} f
+   */
+  function traysHtml(f) {
+    const trees = f.worktrees.length + f.branches.length
+    const atRisk = risky(f)
+    const past = pastCount(f)
+    const edited = editedRows(f).length
+    const tidy = can(f, 'tidy') || edited > 0
+    const stranded = strandedOf(f).length
+    /** @param {string} key @param {string} label @param {string} title */
+    const tray = (key, label, title) => `<button class="tray ${unfolded.has(`${key}:${f.id}`) ? 'on' : ''}" data-section="${key}:${f.id}" aria-expanded="${unfolded.has(`${key}:${f.id}`)}" data-tip="${title}">${label}</button>`
+    const trays = [
+      trayRowsHtml(f),
+      trees && tray('worktrees', `${ICON.branch} <b>${trees}</b> ${noun(trees, 'worktree')}${atRisk ? ` <i>${atRisk} at risk</i>` : ''}`, 'worktrees and the branches the tower kept'),
+      stranded && (heldWhy('resume') ? heldHtml('resume', `resume all ${stranded} stranded`, `${ICON.resume} resume all <b>${stranded}</b> stranded`, 'tray') : `<button class="tray" data-resume-all="${f.id}" data-tip="resume every worker stopped, killed or lost before it was sent home: asked first, listing them">${ICON.resume} resume all <b>${stranded}</b> stranded</button>`),
+      past && `<button class="tray ${at('tower/archive')?.project === f.id ? 'on' : ''}" data-archive="${f.id}" aria-pressed="${at('tower/archive')?.project === f.id}" data-tip="past workers and their conversations, in the main pane">${ICON.archive} <b>${past}</b> archived</button>`,
+      tidy && tray('tidy', `${ICON.tidy} ${esc(can(f, 'tidy') ? tidyLine(f.tidy, addedTidyOf(board(), f)) : 'Tidy')}${edited ? `, ${edited} landed edited` : ''}`, 'what Tidy would do: unfold it to see the list before you press'),
+    ].filter(Boolean)
+    if (!trays.length) return ''
+    return `<div class="trays">${trays.join('')}</div>
+    ${trees && unfolded.has(`worktrees:${f.id}`) ? worktreesHtml(f) : ''}${tidy && unfolded.has(`tidy:${f.id}`) ? tidyHtml(f) : ''}`
+  }
+
+  /**
+   * Whether each floor is open, as this viewer chose by its sign, kept in `tower.store` by project. A floor never chosen
+   * is open while a worker on it needs you (a question, a permission or a screen), and folded otherwise.
+   */
+  const FLOORS_OPEN_KEY = 'floors.open'
+  let floorsOpen = /** @type {Record<string, boolean>} */ ((await tower.store.get(FLOORS_OPEN_KEY)) ?? {})
+  /** The selected worker whose floor its sign folded: the selected worker's floor is open whatever was chosen until then. @type {string | undefined} */
+  let foldedOver
+
+  /** The waits and offers on a floor that this viewer heeds. @param {Floor} f */
+  const floorWaits = (f) => heededWaits(board(), heed()).filter((w) => f.cards.some((c) => c.id === w.id))
+  /** The asks about the floor or a subject on it that this viewer heeds. @param {Floor} f */
+  const floorAsks = (f) => heededAsks(board(), heed()).filter((a) => projectOfKey(board(), a.subject) === f.id)
+
+  /** @param {Floor} f */
+  const holdsSelected = (f) => selected() !== undefined && selected() !== foldedOver && findCard(selected())?.project === f.id
+  /** @param {Floor} f */
+  const needsYou = (f) => floorWaits(f).some((w) => /** @type {Card} */ (findCard(w.id)).attention === 'needs')
+  /** @param {Floor} f */
+  const isOpen = (f) => holdsSelected(f) || (floorsOpen[f.id] ?? needsYou(f))
+
+  /** The selected worker's floor is open again, whatever its sign folded. */
+  const forgetFold = () => (foldedOver = undefined)
+
+  /** @param {string} id */
+  function toggleFloor(id) {
+    const f = /** @type {Floor} */ (floorOf(id))
+    const open = !isOpen(f)
+    if (holdsSelected(f)) foldedOver = selected()
+    floorsOpen = Object.fromEntries([...Object.entries(floorsOpen).filter(([p]) => p !== id && floorOf(p)), [id, open]])
+    tower.store.set(FLOORS_OPEN_KEY, floorsOpen)
+    render()
+  }
+
+  /** A folded floor's counts: its waits on you (ringed, lamp of the loudest), its offers, and its workers on duty by the loudest. @param {Floor} f */
+  const floorSummaryHtml = (f) => {
+    const waits = floorWaits(f).map((w) => /** @type {Card} */ (f.cards.find((c) => c.id === w.id)))
+    const offers = floorAsks(f).length
+    const duty = f.cards.filter(onDuty)
+    const tone = loudest(duty)
+    /** @param {string} cls @param {number} n @param {string} words */
+    const count = (cls, n, words) => `<span class="chip ${cls}" data-tip="${esc(words)}" data-n="${n}"><span class="lamp"></span><b>${n}</b><span class="sr-only"> ${esc(words)}</span></span>`
+    return `<span class="summary">${[
+      waits.length && count(`waits some calls ${loudest(waits)}`, waits.length, WAITING_NAME),
+      offers && count('offered some', offers, 'offered or asked'),
+      duty.length && count(/** @type {Attention} */ (tone), duty.length, `${noun(duty.length, 'worker')} on duty, the loudest: ${ATTENTION_NAME[/** @type {Attention} */ (tone)]}`),
+    ].filter(Boolean).join('')}</span>`
+  }
+
+  /** Every floor's cards indexed once per board, shared by the floors drawn from it. @type {WeakMap<Board, { hiresEverywhere: (c: Card) => Card[], everyone: Card[] }>} */
+  const everywhere = new WeakMap()
+
+  /** A floor's crews, indexed for drawing. @param {Floor} f @returns {Crews} */
+  const floorCrews = (f) => {
+    const b = board()
+    const all = everywhere.get(b) ?? (() => {
+      const everyone = b.floors.flatMap((g) => g.cards)
+      return { hiresEverywhere: hiresBy(everyone), everyone }
+    })()
+    everywhere.set(b, all)
+    return { hires: hiresBy(f.cards), fold: crewFoldsOf(f.cards), ...all }
+  }
+
+  /** @param {Floor} f @param {number} i @param {Floor[]} all */
+  const floorHtml = (f, i, all) => {
+    const heads = crewTreeIn(f.cards, viewer().crewsOrder).filter(({ depth }) => depth === 0).map(({ card }) => card)
+    const open = isOpen(f)
+    const spawn = heldWhy('spawn') ? heldHtml('spawn', `new session on ${f.name}`, ICON.plus) : can(f, 'spawn') ? `<button data-spawn="${f.id}" aria-label="new session on ${esc(f.name)}" data-tip="new session">${ICON.plus}</button>` : ''
+    return floorPlateHtml(f, { n: all.length - i, open, style: paint(f.id), sign: (open ? signHtml(f) : floorSummaryHtml(f)) + spawn, body: open ? floorBodyHtml(f, heads, floorCrews(f)) : '' })
+  }
+
+  /** What extensions add about no one floor (`board.sign`), beside Floors and Stats: their commands, each its icon. */
+  const boardSignHtml = () => iconButtonsHtml(board(), boardSubject(board()), shownIn('board.sign', heldActions(holdsOf('board.sign'), addedActions(board(), boardSubject(board())))))
+
+  /** What extensions add to an open floor's sign: their commands, each its icon. @param {Floor} f */
+  const signHtml = (f) => iconButtonsHtml(board(), floorSubject(f), shownIn('floor.sign', heldActions(holdsOf('floor.sign'), addedActions(board(), floorSubject(f)))))
+
+  /** What extensions add to the floor: its badges and verbs in a row. @param {Floor} f */
+  const floorAddsHtml = (f) => {
+    const subject = floorSubject(f)
+    const on = onScreen('floor.section')
+    const adds = badgesHtml(board(), subject) + actionsHtml(board(), subject, shownIn('floor.section', heldActions(holdsOf('floor.section'), addedActions(board(), subject)))) + (on ? opensHtml(subject) : '')
+    return adds ? `<div class="adds">${adds}</div>` : ''
+  }
+
+  /** @param {Floor} f @param {Card[]} heads @param {Crews} crews */
+  const floorBodyHtml = (f, heads, crews) => {
+    const drag = dragOn(f, heads)
+    return `
+    <div class="dirs">${dirHtml(f, f.hub, true)}${f.repos.map((r) => dirHtml(f, r, false)).join('')}</div>
+    ${shelfHtml(f)}
+    ${floorAddsHtml(f)}
+    ${asksHtml(board(), floorAsks(f), pageNow())}
+    <div class="sessions${drag && drag.before === undefined ? ' drop-end' : ''}">${heads.length ? heads.map((c) => crewGroupHtml(crews, f, c, heads.length, drag)).join('') : '<div class="empty">lights off</div>'}</div>
+    ${traysHtml(f)}`
+  }
+
+  /** A limit's meter, with a tick where an even pace through the week would be. @param {RateLimit} r @param {number} now */
+  const limitHtml = (r, now) => {
+    const pct = r.percentUsed
+    const elapsed = weekElapsed(r, now)
+    const pace = elapsed === undefined ? '' : `<s style="left:${elapsed}%"></s>`
+    return `<div${elapsed === undefined ? '' : ` data-tip="${paceLine(pct, elapsed)}"`}><div class="row">${esc(r.kind.replaceAll('_', ' '))} <b>${pct}%</b>
+    <small>${r.resetsAt ? resetLine(r.resetsAt, now) : ''}</small></div>
+    <div class="meter" style="--fill:${fillOf(pct, 85)}"><i style="width:${pct}%"></i>${pace}</div></div>`
+  }
+
+  /**
+   * A command's quota probe under its limits while it runs: its line, its state's colour on the lamp, and in full on hover.
+   * @param {CommandLimits} entry @param {number} now
+   */
+  const probeHtml = (entry, now) => {
+    const p = commandProbes(board()).find((probe) => probe.command === entry.command)
+    if (!p) return ''
+    const named = entry.command === undefined ? '' : ` data-probe-command="${esc(entry.command)}"`
+    return `<small class="probe ${PROBE_ATTENTION[p.state]}" id="${esc(domId('probe', entry.command ?? ''))}" data-tip="${esc(probeTitle(p, now))}"><span class="lamp"></span>${esc(probeLine(p, now))}<button class="probe-run" data-probe-run="quota"${named} data-tip="read it now: at most once a minute">read now</button></small>`
+  }
+
+  /** Extra usage while it is on, as the probe last read it. @param {CommandLimits} entry @param {number} now */
+  const extraHtml = ({ extraUsage: e }, now) =>
+    e?.enabled ? `<small class="extra${e.reached ? ' spent' : ''}" data-tip="credits spent past the plan's limits, read ${span(now - e.at)} ago">${esc(extraUsageLine(e))}</small>` : ''
+
+  /**
+   * A command's rate limits as of their reading, dimmed once it is old enough to have moved, then its extra usage and
+   * the probe that reads them, under its name where `argv` names its commands.
+   * @param {CommandLimits} entry @param {number} now
+   */
+  const commandLimitsHtml = (entry, now) => {
+    const name = entry.command === undefined ? '' : `<small class="command">${esc(entry.command)}</small>`
+    const after = `${extraHtml(entry, now)}${probeHtml(entry, now)}`
+    if (!entry.rateLimits.length) return `<div class="account">${name}<small>no rate-limit reading yet</small>${after}</div>`
+    const age = now - /** @type {number} */ (entry.rateLimitsAt)
+    return `<div class="account">${name}${entry.rateLimits.map((r) => limitHtml(r, now)).join('')}
+    <small class="asof ${age > LIMITS_STALE_MS ? 'stale' : ''}" data-tip="${esc(limitsFromTitle(entry))}">as of ${span(age)} ago</small>${after}</div>`
+  }
+
+  /** Each command's limits. Rate limits on the board come with when they were read. @param {number} now */
+  const limitsHtml = (now) => board().limits.map((entry) => commandLimitsHtml(entry, now)).join('')
+
+  /** The limit closest to running out, of any command: the one with the most used, with the entry it is of. */
+  const tightestLimit = () =>
+    board()
+      .limits.flatMap((entry) => entry.rateLimits.map((limit) => ({ limit, entry })))
+      .reduce((a, b) => (b.limit.percentUsed > a.limit.percentUsed ? b : a))
+
+  /** A meter's tone as an attention class, by the thresholds `fillOf` colours it with. @param {number} pct */
+  const limitTone = (pct) => (pct > 85 ? 'broken' : 'quiet')
+
+  /** The limits folded into one chip: the tightest limit's name and percentage, loud once it is hot. @param {number} now */
+  const limitsPill = (now) => {
+    const all = board().limits.flatMap((entry) => entry.rateLimits)
+    if (!all.length) return { cls: 'chip quiet', html: '<span class="lamp"></span>no limits read', tip: 'no rate-limit reading yet: click for the probe that reads them' }
+    const { limit: r, entry } = tightestLimit()
+    const tone = limitTone(r.percentUsed)
+    const name = r.kind.replace('five_hour', '5h').replace('seven_day', 'week').replaceAll('_', ' ')
+    const age = now - /** @type {number} */ (entry.rateLimitsAt)
+    const stale = age > LIMITS_STALE_MS
+    const whose = entry.command === undefined ? '' : `${entry.command}'s `
+    return { cls: `chip ${tone}${tone === 'broken' ? ' some' : ''}${stale ? ' stale' : ''}`, html: `<span class="lamp"></span>${esc(name)} <b>${r.percentUsed}%</b>`,
+      tip: `${whose}${r.kind.replaceAll('_', ' ')}: ${r.percentUsed}% used, the tightest of ${plural(all.length, 'limit')}, as of ${span(age)} ago: click for all of them` }
+  }
+
+  function paintLimits() {
+    const now = Date.now()
+    const pill = limitsPill(now)
+    const open = $('limits-open')
+    open.className = pill.cls
+    open.dataset.tip = pill.tip
+    if (open.innerHTML !== pill.html) open.innerHTML = pill.html
+    morphPanel($('limits'), limitsHtml(now))
+  }
+  placeOnOpen($('limits'), () => $('limits-open'))
+
+  /** The collapsed sidebar: a way back, the waiting count, and a lamp per session on duty, each by its card's id. */
+  /** @param {number} waiting */
+  const railHtml = (waiting) =>
+    `<button class="icon-btn" data-side aria-label="show the sidebar" ${keyedTip(board().keys, 'show the sidebar', 'sidebar')}>${ICON.sidebar}</button>
+  ${waiting ? `<span class="count" data-tip="waiting on you">${waiting}<span class="sr-only"> waiting on you</span></span>` : ''}
+  ${dutyOrderIn(board(), viewer().crewsOrder).map((c) => {
+      const title = esc(callsign(c.id) + ' · ' + statusName(c) + (gistLine(c) ? ' · ' + gistLine(c) : ''))
+      return `<a class="lamp ${lampOf(c)} ${callsYou(c) ? 'calls' : ''} ${c.id === selected() ? 'sel' : ''}" id="${esc(domId('rail', `card:${c.id}`))}" href="#${c.id}"${c.id === selected() ? ' aria-current="true"' : ''} aria-label="${title}" data-tip="${title}"></a>`
+    }).join('')}`
+
+  /** The header's buttons name the chords of the commands they share, as the config binds them. */
+  function paintKeys() {
+    $('keys-open').dataset.tip = withKeys('shortcuts and what the statuses mean', 'help')
+    $('keys-open').setAttribute('aria-keyshortcuts', keyshortcuts(board().keys, 'help'))
+    $('side-hide').dataset.tip = withKeys('hide the sidebar', 'sidebar')
+    $('side-hide').setAttribute('aria-keyshortcuts', keyshortcuts(board().keys, 'sidebar'))
+  }
+
+  /** Under this width the sidebar is a rail, and the sidebar key opens it over the main pane until something opens there. */
+  const narrow = matchMedia('(max-width: 900px)')
+
+  function closeDrawer() {
+    document.body.classList.remove('drawer')
+  }
+
+  const COLLAPSED_KEY = 'side.collapsed'
+  function toggleSide() {
+    if (narrow.matches) return document.body.classList.toggle('drawer')
+    document.body.classList.toggle('collapsed')
+    tower.store.set(COLLAPSED_KEY, document.body.classList.contains('collapsed'))
+  }
+  document.body.classList.toggle('collapsed', (await tower.store.get(COLLAPSED_KEY)) === true)
+
+  $('keys-open').innerHTML = ICON.help
+  $('side-hide').innerHTML = ICON.sidebar
+
+  told(tower.get('origins')).then((o) => o && ((origins = o), render()))
+
+  /** Every renderer of the same system: this one, the others to open, and those not built yet. */
+  told(tower.get('renderers')).then((r) => r && ($('renderers').innerHTML = renderersHtml(r.renderers, location.pathname.split('/')[2], tower.framed)))
+
+  return { origins: () => origins, wireCrewGrips, toggleSection, toggleCrewFold, forgetFold, toggleFloor, floorHtml, boardSignHtml, paintLimits, railHtml, paintKeys, closeDrawer, toggleSide }
+}

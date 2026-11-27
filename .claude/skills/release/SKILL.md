@@ -5,7 +5,8 @@ description: Ship a change to Lobby, or cut a release of it. Use when asked to r
 
 # Releasing Lobby
 
-Lobby is `lobby.js` and `lobby.css` over a copy of the tower's page, built into `out/` by `sync.sh`. A release is a
+Lobby is `lobby.js` and `lobby.css` over the tower's page it carries in `page/` (upstream's, at the commit `UPSTREAM`
+names), built into `out/` by `sync.sh`. A release is a
 number in `VERSION`, a section in `CHANGELOG.md`, a merge on `main` and an annotated tag `v<version>` whose message is
 that section. The steps run in this order; skip the ones the user didn't ask for, and say which you skipped.
 
@@ -18,6 +19,12 @@ answers its `lobby.js` and `lobby.css` with yours, and reports errors.
 ```sh
 node .claude/skills/release/check.mjs . <out dir> [window widths…]      # e.g. 1280 1920 2560
 ```
+
+The page's modules come from the `out/` the tower serves Lobby from. When that tower's page isn't `page/` (the user's
+own tower, while it is older than `UPSTREAM`'s API), check on a sandbox instead: start one from an upstream clone at
+`UPSTREAM`'s commit (`npm run sandbox -- up`), add `"extensions": { "lobby": { "path": "<your worktree>" } }` to its
+own config, fill it with `demo/populate.sh`, run `./sync.sh` in your worktree and pass `TOWER_URL=<sandbox url>`.
+Bring it down after.
 
 It prints the page's console errors and saves `sidebar-<width>.png` per width into `<out dir>` (use the scratchpad).
 Read the screenshots. A fresh headless profile starts with empty `tower.store`, so the viewer's choices are the
@@ -84,6 +91,8 @@ Only when the user asks ("pull and sync"). The main checkout is theirs: look bef
 ```sh
 cd <main checkout>
 git status --short --branch                 # clean and on main, or stop and ask
+curl -sN -m 3 http://127.0.0.1:<port>/board | head -c 40   # its "v": below extension.json's requires.tower, stop and
+                                            # say so: the tower would refuse this Lobby (the user updates it first)
 git pull --ff-only
 ./sync.sh
 grep -o 'lobby-version"[^>]*' out/index.html  # the new version and the merge's commit

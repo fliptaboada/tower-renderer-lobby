@@ -6,6 +6,17 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-27
+
+### Changed
+- A tower update no longer changes or breaks Lobby. Lobby now carries the tower's page it was checked with (the
+  tower's v2.19.0 page, in `page/`) instead of copying whichever page your tower has, so everyone runs the same page,
+  on any tower from v2.19.0 (API 2.41) within 2.x. Upstream's newest page changes reach Lobby with its next release,
+  once the nightly check has passed on them.
+- Lobby needs a tower at API 2.41 or newer within 2.x. On an older tower, or a new major, the tower refuses it and
+  `tower extensions` says why, instead of serving a page that could break. Lobby 0.3.7 still runs on older towers.
+- `./sync.sh` no longer needs a running tower, and leaves `out/` as it was when a build fails.
+
 ## [0.3.7] - 2026-11-27
 
 ### Fixed
@@ -122,7 +133,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.7...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.7...v0.4.0
 [0.3.7]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.6...v0.3.7
 [0.3.6]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.4...v0.3.5

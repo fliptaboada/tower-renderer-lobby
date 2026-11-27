@@ -1,0 +1,111 @@
+import { gistOf, shownHref, shownKey } from '/lib/cards.js'
+import { closableNoticer, noticer, toaster } from '/lib/chrome.js'
+import { keysHint } from '/lib/keys.js'
+import { GIST_ICON, ICON, keyedTip } from '/lib/view.js'
+import { esc, when } from '/lib/words.js'
+
+/**
+ * What the tower page's panes draw with alike: a card's gist, times, the close of a view, a toast, keeping a scrolled
+ * list's row in place, and a showing's key, pane and address.
+ * @import { Card } from '/lib/board.js'
+ * @import { Keys } from '/lib/keys.js'
+ */
+
+/**
+ * The elements `$` finds whose type is not a plain `HTMLElement`, or that exist only while their view is drawn.
+ * @typedef {{
+ *   spawn: HTMLDialogElement, transfer: HTMLDialogElement, landing: HTMLDialogElement, keys: HTMLDialogElement, palette: HTMLDialogElement, patterns: HTMLDialogElement,
+ *   'item-doc': HTMLIFrameElement,
+ *   orb: HTMLElement | null, clock: HTMLElement | null,
+ * }} PageElements
+ */
+
+/** @param {Card} c */
+const onDuty = (c) => c.onDuty
+
+/** The card's gist as HTML: a tool's name in bold, said words after their mark. @param {Card} c */
+const lineOf = (c) => {
+  const gist = gistOf(c)
+  if (!gist) return '<i>no prompt yet</i>'
+  if (gist.kind === 'asks' || gist.kind === 'runs') return toolHtml(gist.text)
+  return `<span class="said">${GIST_ICON[gist.kind]}</span> ${esc(gist.text)}`
+}
+
+/** `Bash npm test` → the tool's name in bold, then what it acts on. @param {string} tool */
+const toolHtml = (tool) => {
+  const [name, ...target] = tool.split(' ')
+  return `<span class="tool"><b>${esc(name)}</b> ${esc(target.join(' '))}</span>`
+}
+
+/**
+ * @template {string} K
+ * @param {K} id
+ * @returns {K extends keyof PageElements ? PageElements[K] : HTMLElement}
+ */
+const $ = (id) => /** @type {any} */ (document.getElementById(id))
+
+/** @param {{ startedAt: number }} a @param {{ startedAt: number }} b */
+const byStart = (a, b) => a.startedAt - b.startedAt
+
+/** A floor's sign: its number on the project's band, its name in caps, cut to the sign's width and whole in the tooltip. @param {number} n @param {string} name */
+const signHtml = (n, name, extra = '') =>
+  `<div class="sign"><span class="num">${String(n).padStart(2, '0')}</span><span class="name" role="heading" aria-level="2" data-tip="${esc(name)}">${esc(name)}</span>${extra}</div>`
+
+/** A meter's fill: ink, broken past `hot`. @param {number} pct @param {number} hot */
+const fillOf = (pct, hot) => (pct > hot ? 'var(--broken)' : 'var(--ink)')
+
+/** What a control does with the chords of the command it shares, when it has any: `hide the sidebar (⌘B)`. @param {Keys} keys @param {string} what @param {string} id */
+const keyedText = (keys, what, id) => (keysHint(keys, id) ? `${what} (${keysHint(keys, id)})` : what)
+
+/** The close of a view in the main pane: back to the skyline. @param {Keys} keys */
+const closeHomeHtml = (keys) => `<button class="icon-btn" data-act="home" aria-label="back to the skyline" ${keyedTip(keys, 'back to the skyline', 'home')}>${ICON.close}</button>`
+
+/** The nearest element from `el` up that scrolls its content: the list itself, or in the short layout the sidebar around it. @param {HTMLElement | null} el */
+const scrollerOf = (el) => {
+  for (let e = el; e; e = e.parentElement) if (/auto|scroll/.test(getComputedStyle(e).overflowY)) return e
+  return /** @type {Element} */ (document.scrollingElement)
+}
+
+/** The `[data-hold="key"]` row and its offset from a scrolled list's top edge, while any of it is in sight. @param {HTMLElement} list @param {string | undefined} key */
+const sightAnchorOf = (list, key) => {
+  const row = key && list.querySelector(`[data-hold="${CSS.escape(key)}"]`)
+  if (!row) return undefined
+  const edges = scrollerOf(list).getBoundingClientRect()
+  const { top, bottom } = row.getBoundingClientRect()
+  return top < edges.bottom && bottom > edges.top ? { key, offset: top - edges.top } : undefined
+}
+
+/**
+ * Keeps the `anchor` row of a scrolled list where it was before the list was redrawn: a browser's scroll anchoring
+ * holds the list still around a node of its own choosing, which rows changing height between it and `anchor` move.
+ * @param {HTMLElement} list
+ * @param {{ key: string, offset: number } | null | undefined} anchor
+ */
+function holdRow(list, anchor) {
+  const row = anchor && list.querySelector(`[data-hold="${CSS.escape(anchor.key)}"]`)
+  if (!row) return
+  const scroller = scrollerOf(list)
+  scroller.scrollTop += row.getBoundingClientRect().top - scroller.getBoundingClientRect().top - anchor.offset
+}
+
+/** Says `msg` to a screen reader, through the polite live region: a new node each time, so the same words are said again. @param {string} msg */
+const announce = (msg) => $('announce').replaceChildren(Object.assign(document.createElement('p'), { textContent: msg }))
+
+/** Tells what just happened, with an action that follows it up when given (`/lib/chrome.js`, a live region of its own). */
+const toast = toaster($('toasts'))
+
+/** Tells what goes on until it is closed, in the toasts' stack (`/lib/chrome.js`' `noticer`). */
+const notice = noticer($('toasts'))
+
+/** A notice its reader closes with its ×, in the toasts' stack (`/lib/chrome.js`' `closableNoticer`). */
+const closableNotice = closableNoticer($('toasts'))
+
+/**
+ * A request whose failure is told in a toast, answering `undefined`.
+ * @template T
+ * @param {Promise<T>} request
+ * @returns {Promise<T | undefined>}
+ */
+const told = (request) => request.catch((err) => (toast(err.message), undefined))
+
+export { onDuty, lineOf, toolHtml, when, $, byStart, signHtml, fillOf, keyedText, closeHomeHtml, shownKey, shownHref, sightAnchorOf, holdRow, announce, toast, notice, closableNotice, told }
