@@ -122,11 +122,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-<<<<<<< HEAD
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...HEAD
-=======
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.6...HEAD
->>>>>>> origin/main
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.7...HEAD
+[0.3.7]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.6...v0.3.7
 [0.3.6]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.3...v0.3.4
