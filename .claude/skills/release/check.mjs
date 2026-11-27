@@ -13,6 +13,13 @@ const [clone, out, ...sizes] = process.argv.slice(2)
 if (!clone || !out) throw new Error('usage: check.mjs <clone> <out dir> [width…]')
 const widths = sizes.length ? sizes.map(Number) : [1280]
 const tower = process.env.TOWER_URL ?? 'http://127.0.0.1:4317'
+// sync.sh strips lobby.css's layer lines for a page whose CSS sits in no cascade layer (before 2.17, or a fork); do
+// the same, or every layered rule of Lobby's loses to the page and the screenshots show the stock page's look.
+const layered = (await fetch(`${tower}/r/lobby/`).then((r) => r.text())).includes('@layer tower.')
+const lobbyCss = () => {
+  const css = readFileSync(path.join(clone, 'lobby.css'), 'utf8')
+  return layered ? css : css.split('\n').filter((l) => !/^@layer tower\.\w+ \{$/.test(l) && !/^\} \/\* tower\.\w+ \*\/$/.test(l)).join('\n')
+}
 const chromePath = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 mkdirSync(out, { recursive: true })
 const profile = mkdtempSync(path.join(out, 'profile-'))
@@ -36,7 +43,7 @@ ws.onmessage = (ev) => {
   if (m.method === 'Fetch.requestPaused') {
     const file = new URL(m.params.request.url).pathname.endsWith('.js') ? 'lobby.js' : 'lobby.css'
     const type = file.endsWith('.js') ? 'text/javascript' : 'text/css'
-    send('Fetch.fulfillRequest', { requestId: m.params.requestId, responseCode: 200, responseHeaders: [{ name: 'content-type', value: type }], body: readFileSync(path.join(clone, file)).toString('base64') })
+    send('Fetch.fulfillRequest', { requestId: m.params.requestId, responseCode: 200, responseHeaders: [{ name: 'content-type', value: type }], body: Buffer.from(file === 'lobby.css' ? lobbyCss() : readFileSync(path.join(clone, file))).toString('base64') })
   }
   if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text)
   if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') errors.push(m.params.args.map((/** @type {{ value?: unknown, description?: string }} */ a) => a.value ?? a.description).join(' '))
