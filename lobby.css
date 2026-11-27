@@ -444,6 +444,9 @@ dialog.palette { margin-top: 16vh; border-radius: 14px; }
 } /* tower.page */
 @layer tower.views {
 .xterm, .xterm .xterm-scrollable-element, .xterm .xterm-viewport, .xterm .xterm-screen, .xterm .xterm-rows { background-color: var(--enamel) !important; }
+/* The body's tightened tracking stays out of terminals: xterm measures its cell with what it inherits, then draws its
+   rows at a spacing of its own, so an inherited one made every row a hair wider than its cells and cut the last letter. */
+.xterm { letter-spacing: normal; }
 
 /* The rest of the capitals: the skyline's greeting, the settings' and the new worker's headings. */
 .main [data-view] .hello .big { font: 700 var(--fs-3xl)/1.1 var(--display); letter-spacing: -.015em; text-transform: none; }

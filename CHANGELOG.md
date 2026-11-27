@@ -6,7 +6,7 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
-## [0.3.6] - 2026-11-26
+## [0.3.7] - 2026-11-27
 
 ### Fixed
 - On the tower from v2.18.0, whose sidebar opens Stats and extensions' views from a row of entries above the floors,
@@ -15,6 +15,12 @@ fixes or polishes what is there.
   a second press closes them; the grid icon opens the row's other entries, such as the Learning center.
 - The tower's own "Waiting on you" section, new in v2.18.0, gives way to Lobby's inbox while the inbox shows, so the
   waits aren't listed twice. Older towers get the same Lobby as before.
+
+## [0.3.6] - 2026-11-26
+
+### Fixed
+- A worker's terminal no longer cuts off the last letter at its right edge: Lobby's slightly tighter letter spacing
+  no longer reaches the terminal, so each line fits the pane it is drawn in.
 
 ## [0.3.5] - 2026-11-25
 
@@ -116,7 +122,11 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
+<<<<<<< HEAD
 [Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...HEAD
+=======
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.6...HEAD
+>>>>>>> origin/main
 [0.3.6]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.3...v0.3.4
