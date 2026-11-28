@@ -6,6 +6,16 @@ fixes or polishes what is there.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-28
+
+### Changed
+- Lobby now runs the tower's v2.20.0 page, so it needs a tower at API 2.44 or newer within 2.x. On an older tower the
+  tower refuses it and `tower extensions` says why; Lobby 0.4.0 still runs there.
+- New from that page: drag the sidebar's edge to make it wider or narrower (double-click it for its usual width), and
+  drag the line above the shells to change their height. Each viewer's sizes are kept.
+- The settings, the rate limits and the new-shell picker open as the tower's own popovers, styled as Lobby's
+  menu-bar popovers were, with the Inbox setting where it was.
+
 ## [0.4.0] - 2026-11-27
 
 ### Changed
@@ -133,7 +143,8 @@ fixes or polishes what is there.
 - Lobby's version at the foot of the sidebar, which copies a line for a bug report.
 - The MIT license.
 
-[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.7...v0.4.0
 [0.3.7]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.6...v0.3.7
 [0.3.6]: https://github.com/fliptaboada/tower-renderer-lobby/compare/v0.3.5...v0.3.6
