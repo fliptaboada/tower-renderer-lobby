@@ -25,7 +25,7 @@ extensions: only the page you look at changes. Inspired by Arc's window, Things'
 
 ## Install
 
-Lobby needs a tower at API 2.41 or newer within 2.x (v2.19.0 and later), and works from any folder outside the
+Lobby needs a tower at API 2.44 or newer within 2.x (v2.20.0 and later), and works from any folder outside the
 tower's checkout.
 
 ```sh
@@ -48,7 +48,7 @@ update, below). To set the inbox for every browser until a viewer picks in Setti
 
 Check the config with `tower config check`, and open `http://127.0.0.1:<your tower's port>/r/lobby/`. To make it the
 page `/` opens (and Tower.app shows), add `"renderer": "lobby"` too. If the extension doesn't show up, `tower
-extensions` says why: on a tower older than 2.41 it asks for `tower update`.
+extensions` says why: on a tower older than 2.44 it asks for `tower update`.
 
 ## Update
 
@@ -64,7 +64,7 @@ changes reach Lobby with that release.
 
 ## Which version you run
 
-The sidebar's foot shows it: **Lobby 0.4.0** at the end of "Config and renderers". Its tip says the commit it was
+The sidebar's foot shows it: **Lobby 0.5.0** at the end of "Config and renderers". Its tip says the commit it was
 built from (with a `+` when your clone has changes of its own), the day of the build and the tower's version; press
 it to copy that line, for a bug report. Releases are tagged `v<version>`, after the number in `VERSION`, and
 [CHANGELOG.md](CHANGELOG.md) says what each one changed (each tag's message carries its section too).
@@ -89,7 +89,7 @@ Lobby is two files over a copy of the stock page, and touches nothing in the tow
 
 It builds on the page's element ids and classes, which are not a contract between tower versions: that is why Lobby
 carries the page it was checked with, instead of copying each tower's own. To check Lobby on another page, give
-`sync.sh` its checkout: `./sync.sh ~/code/the-tower`. Last checked with the tower at v2.19.0 (API 2.41).
+`sync.sh` its checkout: `./sync.sh ~/code/the-tower`. Last checked with the tower at v2.20.0 (API 2.44).
 
 ## Recording the demo
 

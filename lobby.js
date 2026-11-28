@@ -20,7 +20,10 @@ import { esc, modelName } from '/lib/words.js'
   const byId = (/** @type {string} */ id) => /** @type {HTMLElement} */ (document.getElementById(id))
   const make = (/** @type {string} */ html) => /** @type {HTMLElement} */ (document.createRange().createContextualFragment(html).firstElementChild)
   const entries = !!byId('nav-entries')
-  byId('settings-open').before(byId('board-sign'), make(`<button class="icon-btn stats-open" ${entries ? 'data-nav-view="tower/stats"' : 'data-side-view="stats"'} aria-label="stats" data-tip="stats: spend, work and waits, from the logs"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 13.5h11M4.5 11V8M8 11V4.5M11.5 11V6.5"/></svg></button>`))
+  // From v2.20 the settings button sits in a <tower-popover-button>, which takes its first button for its own: what
+  // goes beside it goes before that holder.
+  const settingsAt = byId('settings-open').closest('tower-popover-button') ?? byId('settings-open')
+  settingsAt.before(byId('board-sign'), make(`<button class="icon-btn stats-open" ${entries ? 'data-nav-view="tower/stats"' : 'data-side-view="stats"'} aria-label="stats" data-tip="stats: spend, work and waits, from the logs"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 13.5h11M4.5 11V8M8 11V4.5M11.5 11V6.5"/></svg></button>`))
   const glance = make('<div class="glance"></div>')
   byId('tally').before(glance)
   glance.append(byId('tally'), byId('limits-bar'))
@@ -36,7 +39,7 @@ import { esc, modelName } from '/lib/words.js'
     // button (below) shows them.
     document.body.append(make('<div class="lobby-side-tabs" hidden><span class="lobby-side-anchor" data-side-view="floors"></span></div>'))
   }
-  byId('settings-open').before(make(`<button type="button" class="icon-btn views-open" hidden aria-label="views"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/></svg></button>`))
+  settingsAt.before(make(`<button type="button" class="icon-btn views-open" hidden aria-label="views"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/></svg></button>`))
   const more = make('<details class="side-more"><summary>Config and renderers</summary></details>')
   byId('side-foot').before(more)
   more.append(byId('side-foot'), byId('renderers'))
@@ -195,7 +198,7 @@ new MutationObserver((changes) => changes.some((m) => !inTerminal(m)) && queue()
 
 // What the sidebar draws from the board itself, beside the page's floors: the inbox of who waits on you, and each
 // floor's menu. Both act through the page's own controls by their data attributes (data-worker, data-open-view,
-// data-dismiss, data-spawn, data-shell-dir, data-open, data-resume-all), which the page handles wherever
+// data-dismiss, data-spawn, data-shell-dir, data-open-dir, data-resume-all), which the page handles wherever
 // they are clicked, so nothing here calls a verb or keeps state of its own.
 const side = /** @type {HTMLElement} */ (document.querySelector('.side'))
 const floors = /** @type {HTMLElement} */ (document.getElementById('floors'))
@@ -344,7 +347,8 @@ const drawInbox = () => {
 
 // The inbox's setting, a section of the page's settings popover. The page paints the popover's whole HTML on opening
 // and whenever what it shows changes, so the section is added again after each paint; the page compares its HTML
-// with what it painted last, not with the popover's, so an addition stays until its next real paint.
+// with what it painted last, not with the popover's, so an addition stays until its next real paint. From v2.20 the
+// popover is a <tower-popover> that paints into its body, a few levels down, hence the subtree.
 const settingsPop = /** @type {HTMLElement} */ (document.getElementById('settings'))
 const INBOX_LABEL = { open: 'Open', folded: 'Folded', off: 'Off' }
 const INBOX_MEANS = {
@@ -353,7 +357,7 @@ const INBOX_MEANS = {
   off: 'no inbox: the glance row\'s "waiting on you" counts the waits',
 }
 const drawInboxSetting = () => {
-  const host = settingsPop.querySelector(':scope > .settings')
+  const host = settingsPop.querySelector(':scope > .settings, [data-tower-popover="body"] > .settings')
   if (!host) return
   const html = section('Inbox', 'who waits on you, in the sidebar', `<div class="seg" role="group" aria-label="inbox">${INBOX_MODES.map((m) => choice('data-lobby-inbox', m, INBOX_LABEL[m], INBOX_MEANS[m], m === inboxMode())).join('')}</div>`)
   const was = host.querySelector(':scope > .lobby-inbox-pref')
@@ -365,7 +369,7 @@ const drawInboxSetting = () => {
   else (host.querySelectorAll(':scope > section')[1] ?? host.lastElementChild)?.after(fresh)
   if (focused) /** @type {HTMLElement | null} */ (fresh.querySelector(`[data-lobby-inbox="${focused}"]`))?.focus()
 }
-new MutationObserver(() => drawInboxSetting()).observe(settingsPop, { childList: true })
+new MutationObserver(() => drawInboxSetting()).observe(settingsPop, { childList: true, subtree: true })
 settingsPop.addEventListener('click', (e) => {
   const mode = /** @type {Element} */ (e.target).closest('[data-lobby-inbox]')?.getAttribute('data-lobby-inbox')
   if (isMode(mode)) setInboxMode(/** @type {InboxMode} */ (mode))
@@ -491,7 +495,8 @@ const fill = (floor) => {
     if (editor) {
       const open = el('button', 'icon-btn')
       Object.assign(open, { type: 'button', tabIndex: -1, innerHTML: ICON.editor })
-      Object.assign(open.dataset, { open: dir, openProject: f.id, tip: `open ${dir} in your editor` })
+      // The page's editor buttons are `data-open-dir` from v2.20, `data-open` before.
+      Object.assign(open.dataset, { openDir: dir, open: dir, openProject: f.id, tip: `open ${dir} in your editor` })
       open.setAttribute('role', 'menuitem')
       open.setAttribute('aria-label', `open ${dir.split('/').pop()} in your editor`)
       row.append(open)

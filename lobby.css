@@ -151,6 +151,10 @@ body { background: var(--wall); letter-spacing: -.003em; }
   box-shadow: var(--card-shadow); overflow: hidden; }
 .dock { margin: 0 calc(-1 * var(--sp-l)); background: transparent; }
 .shell-pane { margin: 0 var(--sp-l) var(--sp-l); border-radius: var(--radius); box-shadow: none; }
+/* From v2.20 the view and the dock share a <tower-split> that reaches past the pane's padding, as the dock did. */
+.shells-split { margin: 0 calc(-1 * var(--sp-l)); }
+.shells-split .view-host { margin-inline: var(--sp-l); }
+.shells-split .dock { margin: 0; }
 @media (max-width: 900px) { .main { margin-left: var(--sp-m); } body.drawer .side { background: var(--wall); } }
 
 /* Type: the system face, weights a step lighter, no shouting capitals. */
@@ -385,7 +389,7 @@ dialog.palette { margin-top: 16vh; border-radius: 14px; }
 .pal-item { padding: var(--sp-m) var(--sp-m); border-radius: var(--radius); }
 .pal-item[aria-selected="true"] { background: var(--accent-wash); box-shadow: none; }
 .pal-group { font-weight: 600; }
-.region-menu, .shell-pick, .settings-pop { border: 0; border-radius: var(--radius); box-shadow: var(--shadow-pop); }
+.region-menu, .shell-pick:not(tower-popover), .settings-pop, tower-popover [data-slot="popover-content"] { border: 0; border-radius: var(--radius); box-shadow: var(--shadow-pop); }
 
 /* The shells' dock: tabs as segments under the card. */
 .tab, .tab-add { background: transparent; box-shadow: none; }
@@ -456,15 +460,16 @@ dialog.palette { margin-top: 16vh; border-radius: 14px; }
 
 /* ── Popovers, sheets and the dock ──────────────────────────────────────────────────────────────────────────────── */
 
-/* Settings: a menu-bar popover. Its sheet loads after this one, hence the extra .settings-pop. */
-.settings-pop .settings h2 { padding: var(--sp-l) var(--sp-xl) var(--sp-s); font: 700 var(--fs-l)/1.2 var(--display); letter-spacing: -.01em; text-transform: none; }
-.settings-pop .settings section { padding: var(--sp-m) var(--sp-xl); }
-.settings-pop .settings h3 { font: 600 var(--fs-s)/1.2 var(--ui); }
-.settings-pop .settings .seg { background: color-mix(in oklab, var(--ink) 7%, transparent); border-radius: var(--radius-s); padding: 2px; }
-.settings-pop .settings .seg button { border-radius: 5px; font-weight: 500; }
-.settings-pop .settings .seg button.on { box-shadow: var(--card-shadow); }
-.settings-pop .settings :is(input, select) { border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--panel); }
-.settings-pop .settings :is(input, select):focus-visible { outline: 3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset: 0; border-color: var(--accent); }
+/* Settings: a menu-bar popover. Its sheet loads after this one, hence the extra .settings-pop (#settings on a tower from
+   v2.20, where the popover is a <tower-popover> without that class). */
+:is(.settings-pop, #settings) .settings h2 { padding: var(--sp-l) var(--sp-xl) var(--sp-s); font: 700 var(--fs-l)/1.2 var(--display); letter-spacing: -.01em; text-transform: none; }
+:is(.settings-pop, #settings) .settings section { padding: var(--sp-m) var(--sp-xl); }
+:is(.settings-pop, #settings) .settings h3 { font: 600 var(--fs-s)/1.2 var(--ui); }
+:is(.settings-pop, #settings) .settings .seg { background: color-mix(in oklab, var(--ink) 7%, transparent); border-radius: var(--radius-s); padding: 2px; }
+:is(.settings-pop, #settings) .settings .seg button { border-radius: 5px; font-weight: 500; }
+:is(.settings-pop, #settings) .settings .seg button.on { box-shadow: var(--card-shadow); }
+:is(.settings-pop, #settings) .settings :is(input, select) { border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--panel); }
+:is(.settings-pop, #settings) .settings :is(input, select):focus-visible { outline: 3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset: 0; border-color: var(--accent); }
 
 /* Floor signs outside the sidebar (the new worker's form, the shell picker) match the sidebar's: a small mark. */
 .spawn-form header .sign { padding: var(--sp-2xs) var(--sp-s); background: transparent; border: 0; box-shadow: none; color: var(--ink); }
@@ -698,7 +703,7 @@ dialog.sheet h2 { font-size: var(--fs-xl); }
 .main .pane-panel :is(.seg, .segs) { border-radius: var(--radius-s); }
 
 /* The worker's details (ⓘ): a popover sheet, labels quiet, values in the system face but for paths. */
-.main [data-view="tower/card"] :is(.bar-details, .bar-left) { border: 0; border-radius: var(--radius); box-shadow: var(--shadow-pop); }
+.main [data-view="tower/card"] :is(.bar-details, .bar-left):not(tower-popover), .main [data-view="tower/card"] :is(.bar-details, .bar-left) [data-slot="popover-content"] { border: 0; border-radius: var(--radius); box-shadow: var(--shadow-pop); }
 .main [data-view="tower/card"] .bar-details h3 { font: 700 var(--fs-l)/1.2 var(--ui); letter-spacing: 0; }
 .main [data-view="tower/card"] .bar-details dt { color: var(--faint); font-size: var(--fs-xs); align-self: baseline; }
 .main [data-view="tower/card"] .bar-details dd { font: var(--fs-s)/1.45 var(--ui); }
